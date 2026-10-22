@@ -121,6 +121,17 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 .msg{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:22px 18px;color:var(--muted)}
 .msg strong{color:var(--ink)}
 
+
+/* share text */
+.topts{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:10px;padding:12px 14px}
+.topts label{display:flex;align-items:center;gap:6px;font-size:14px}
+.topts input[type=text]{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:3px 6px;text-align:center}
+.tday{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.tday-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dc)}
+.tx{margin:0;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.75 var(--font-body)}
+.hint{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+
 .toast{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;max-width:calc(100% - 32px);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:9px;padding:9px 16px;font-size:14px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:20}
 .toast.on{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -142,10 +153,22 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
   <div class="tabs" role="tablist" aria-label="视图">
     <button role="tab" data-view="plan" aria-selected="true">时间表</button>
     <button role="tab" data-view="map" aria-selected="false">地图</button>
+    <button role="tab" data-view="text" aria-selected="false">分享文字</button>
   </div>
   <div id="daynav" class="daynav" aria-label="按天筛选"></div>
   <section id="v-plan"></section>
   <section id="v-map" hidden></section>
+  <section id="v-text" hidden>
+    <div class="panel topts">
+      <label><input type="checkbox" id="oAddr" checked> 显示地址</label>
+      <label><input type="checkbox" id="oNotes" checked> 显示备注</label>
+      <label><input type="checkbox" id="oBold" checked> 标题加粗（WhatsApp）</label>
+      <label>每天开头符号 <input type="text" id="oEmoji" value="📅" maxlength="4" style="width:3.4em" aria-label="每天开头符号"></label>
+      <button class="btn primary" data-copyel="textAll">复制全部行程</button>
+    </div>
+    <p class="hint">用上面的按天筛选，可以只看某一天。点“复制”后，直接粘贴到 WhatsApp 群。</p>
+    <div id="textOut"></div>
+  </section>
   <div id="toast" class="toast" role="status"></div>
 </div>
 
@@ -155,8 +178,16 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 "use strict";
 var $=function(s){return document.querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
-var COLS=["day","time","name","city","address","notes","lat","lng"];
-var HEAD={day:["天数","天","第几天","day","日程"],time:["时间","time","时刻","开始时间"],name:["地点","地点名称","名称","地方","景点","name","place"],city:["城市","city"],address:["地址","address","位置"],notes:["备注","notes","note","说明"],lat:["纬度","lat","latitude"],lng:["经度","lng","lon","long","longitude"]};
+var COLS=["day","time","type","name","city","address","notes","lat","lng"];
+var TYPES=["景点","早餐","午餐","晚餐","住宿","交通","其他","标题"];
+var TICON={"景点":"📍","早餐":"🍳","午餐":"🍜","晚餐":"🍽️","住宿":"🏠","交通":"🚄","其他":"▪️"};
+var TDEF={"标题":"00:00","早餐":"07:00","午餐":"12:00","晚餐":"18:00","住宿":"23:50"};
+function normType(v){ v=String(v||"").trim(); if(v==="当天标题")v="标题"; return TYPES.indexOf(v)>=0?v:""; }
+function isTitle(s){ return s.type==="标题"; }
+function notTitle(s){ return s.type!=="标题"; }
+function typeIcon(s){ return s.type&&s.type!=="景点"&&TICON[s.type]?TICON[s.type]+" ":""; }
+
+var HEAD={day:["天数","天","第几天","day","日程"],time:["时间","time","时刻","开始时间"],type:["类别","类型","category","type"],name:["地点","地点名称","名称","地方","景点","name","place"],city:["城市","city"],address:["地址","address","位置"],notes:["备注","notes","note","说明"],lat:["纬度","lat","latitude"],lng:["经度","lng","lon","long","longitude"]};
 
 /* major Chinese cities: zh, lowercase pinyin/english, lng, lat (only used to estimate a pin when a row has no coordinates) */
 var CITIES=[["北京","beijing",116.41,39.90],["上海","shanghai",121.47,31.23],["广州","guangzhou",113.26,23.13],["深圳","shenzhen",114.06,22.54],["成都","chengdu",104.07,30.57],["重庆","chongqing",106.55,29.56],["西安","xi'an",108.94,34.34],["西安","xian",108.94,34.34],["杭州","hangzhou",120.15,30.27],["南京","nanjing",118.80,32.06],["苏州","suzhou",120.62,31.30],["无锡","wuxi",120.31,31.49],["武汉","wuhan",114.31,30.59],["长沙","changsha",112.94,28.23],["桂林","guilin",110.29,25.27],["阳朔","yangshuo",110.49,24.78],["昆明","kunming",102.83,25.04],["丽江","lijiang",100.23,26.87],["大理","dali",100.27,25.61],["张家界","zhangjiajie",110.48,29.12],["哈尔滨","harbin",126.64,45.76],["青岛","qingdao",120.38,36.07],["厦门","xiamen",118.09,24.48],["贵阳","guiyang",106.63,26.65],["拉萨","lhasa",91.17,29.65],["乌鲁木齐","urumqi",87.62,43.83],["三亚","sanya",109.51,18.25],["海口","haikou",110.35,20.02],["郑州","zhengzhou",113.62,34.75],["洛阳","luoyang",112.45,34.62],["天津","tianjin",117.20,39.08],["沈阳","shenyang",123.43,41.80],["大连","dalian",121.62,38.91],["济南","jinan",117.00,36.65],["合肥","hefei",117.23,31.82],["福州","fuzhou",119.30,26.07],["南昌","nanchang",115.86,28.68],["黄山","huangshan",118.34,29.71],["兰州","lanzhou",103.83,36.06],["西宁","xining",101.78,36.62],["敦煌","dunhuang",94.66,40.14],["银川","yinchuan",106.23,38.49],["太原","taiyuan",112.55,37.87],["大同","datong",113.30,40.08],["平遥","pingyao",112.18,37.20],["香港","hong kong",114.17,22.32],["澳门","macau",113.54,22.20],["南宁","nanning",108.37,22.82],["珠海","zhuhai",113.58,22.27],["乐山","leshan",103.77,29.55],["九寨沟","jiuzhaigou",103.92,33.26]];
@@ -167,8 +198,8 @@ var view="plan", dayFilter=null, selId=null;
 /* ---------- helpers ---------- */
 function num(v){ if(v===null||v===undefined||v==="")return null; var n=Number(v); return isFinite(n)?n:null; }
 function dayOf(s){ var d=parseInt(s.day,10); return d>=1?d:1; }
-function timeKey(t){ var m=/(\d{1,2})\s*[:：点时]\s*(\d{1,2})?/.exec(String(t||"")); if(!m)return "99:99"; return ("0"+m[1]).slice(-2)+":"+("0"+(m[2]||"0")).slice(-2); }
-function sorted(){ return stops.slice().sort(function(a,b){ var ka=timeKey(a.time),kb=timeKey(b.time); return dayOf(a)-dayOf(b) || (ka<kb?-1:ka>kb?1:0) || a.ord-b.ord; }); }
+function timeKey(t,type){ var m=/(\d{1,2})\s*[:：点时]\s*(\d{1,2})?/.exec(String(t||"")); if(!m)return TDEF[type]||"99:99"; return ("0"+m[1]).slice(-2)+":"+("0"+(m[2]||"0")).slice(-2); }
+function sorted(){ return stops.slice().sort(function(a,b){ var ka=timeKey(a.time,a.type),kb=timeKey(b.time,b.type); return dayOf(a)-dayOf(b) || (ka<kb?-1:ka>kb?1:0) || a.ord-b.ord; }); }
 function dc(d){ return "var(--d"+((d-1)%7)+")"; }
 function maxDay(){ var m=14; stops.forEach(function(s){ m=Math.max(m,dayOf(s)); }); return m; }
 function dateOf(d){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(meta.start||""); if(!m)return null; return new Date(+m[1],+m[2]-1,+m[3]+d-1); }
@@ -211,7 +242,7 @@ function rowsFromAOA(aoa){
     var g=function(f){ return map[f]===undefined?"":String(r[map[f]]==null?"":r[map[f]]).trim(); };
     var name=g("name"); if(!name)return;
     var dm=g("day").match(/\d+/); var day=dm?parseInt(dm[0],10):last; if(day<1)day=1; last=day;
-    out.push({id:"s"+out.length,ord:out.length,day:day,time:g("time"),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
+    out.push({id:"s"+out.length,ord:out.length,day:day,time:g("time"),type:normType(g("type")),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
   });
   return out;
 }
@@ -280,7 +311,7 @@ function renderChrome(){
   else if(failed==="fetch")b='<div class="banner">没能读取 itinerary.xlsx。请确认它和 index.html 在同一个位置，或点上面的“载入我的表格”手动选择。</div>';
   $("#banner").innerHTML=b;
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(x){ x.setAttribute("aria-selected",x.dataset.view===view?"true":"false"); });
-  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map";
+  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-text").hidden=view!=="text";
 }
 function renderNav(){
   var by={}; sorted().forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
@@ -304,10 +335,10 @@ function renderPlan(){
   list.forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
   var days=[]; if(dayFilter)days=[dayFilter]; else for(var d=1;d<=maxDay();d++)days.push(d);
   el.innerHTML=days.map(function(d){
-    var l=by[d]||[]; var cs=[]; l.forEach(function(s){ if(s.city&&cs.indexOf(s.city)<0)cs.push(s.city); });
-    var head='<div class="day-h"><div class="day-n"><small>第</small>'+d+'<small>天</small></div><div class="day-meta"><div class="day-date">'+esc(dateLabel(d)||"第"+d+"天")+'</div><div class="day-city">'+esc(cs.join(" → ")||"　")+'</div></div><div class="day-count">'+(l.length?l.length+" 站":"")+'</div></div>';
+    var all=by[d]||[]; var tr=all.filter(isTitle)[0]; var l=all.filter(notTitle); var cs=[]; l.forEach(function(s){ if(s.city&&cs.indexOf(s.city)<0)cs.push(s.city); });
+    var head='<div class="day-h"><div class="day-n"><small>第</small>'+d+'<small>天</small></div><div class="day-meta"><div class="day-date">'+esc(dateLabel(d)||"第"+d+"天")+'</div><div class="day-city">'+esc((tr?tr.name:cs.join(" → "))||"　")+'</div></div><div class="day-count">'+(l.length?l.length+" 站":"")+'</div></div>';
     var body=l.length?'<ol class="stops">'+l.map(function(s){
-      return '<li class="stop"><div class="t'+(s.time?"":" none")+'">'+esc(s.time||"—")+'</div><div><div class="n">'+esc(s.name)+(s.city?'<span class="tag">'+esc(s.city)+'</span>':'')+'</div>'+
+      return '<li class="stop"><div class="t'+(s.time?"":" none")+'">'+esc(s.time||"—")+'</div><div><div class="n">'+typeIcon(s)+esc(s.name)+(s.city?'<span class="tag">'+esc(s.city)+'</span>':'')+'</div>'+
         (s.address?'<p class="addr">'+esc(s.address)+'</p>':'')+(s.notes?'<p class="note">'+esc(s.notes)+'</p>':'')+'</div><div class="go">'+links(s)+'</div></li>';
     }).join("")+'</ol>':'<p class="empty-day">这一天还没有安排。</p>';
     return '<section class="day" style="--dc:'+dc(d)+'">'+head+body+'</section>';
@@ -361,7 +392,7 @@ function detailHTML(s){
 function renderMap(){
   var el=$("#v-map");
   if(!loaded||!stops.length){ el.innerHTML=emptyState(); return; }
-  var l0=sorted(), list=dayFilter?l0.filter(function(s){return dayOf(s)===dayFilter;}):l0;
+  var l0=sorted().filter(notTitle), list=dayFilter?l0.filter(function(s){return dayOf(s)===dayFilter;}):l0;
   if(!list.length){ el.innerHTML='<div class="msg"><strong>这一天还没有地点。</strong></div>'; return; }
   var m=buildMap(list), order={};
   var items=list.map(function(s){
@@ -372,7 +403,50 @@ function renderMap(){
   var miss=list.length-m.placed;
   el.innerHTML='<div class="mapgrid"><div class="mapcol">'+(m.svg?'<figure class="mapbox">'+m.svg+'</figure><p class="legend">示意图，没有底图。数字是当天的游览顺序，虚线圈是按城市估算的位置。'+(miss?' 有 '+miss+' 个地点缺少城市和经纬度，没有画出来。':'')+'</p>':'<div class="msg"><strong>地图上还没有点。</strong><br>在表格里给地点填上城市，或填上纬度和经度。</div>')+'</div><div class="listcol">'+route+'<ol class="mlist">'+items+'</ol></div></div>';
 }
-function renderAll(){ renderChrome(); renderNav(); if(view==="plan")renderPlan(); else renderMap(); }
+function renderAll(){ renderChrome(); renderNav(); if(view==="plan")renderPlan(); else if(view==="text")renderText(); else renderMap(); }
+
+
+/* ---------- share text (for WhatsApp) ---------- */
+function dayText(list,d,o){
+  var tr=list.filter(isTitle)[0], items=list.filter(notTitle);
+  if(!items.length&&!tr)return "";
+  var date=dateLabel(d);
+  var title=tr?tr.name:items.filter(function(s){return !s.type||s.type==="景点";}).map(function(s){return s.name;}).filter(Boolean).join("-");
+  var h=(o.emoji||"")+"Day"+d+(date?" "+date:"")+(title?"｜"+title:"");
+  var out=[o.bold?"*"+h+"*":h];
+  if(tr&&tr.notes)out.push(tr.notes);
+  items.forEach(function(s){
+    var t=s.type||"景点", nm=s.name||"（未命名）", line;
+    if(t==="早餐"||t==="午餐"||t==="晚餐")line=TICON[t]+" "+t+"："+nm+(s.time?"（"+s.time+"）":"");
+    else if(t==="住宿")line="🏠 住宿："+nm;
+    else line=(s.time?s.time+" ":"")+(t==="景点"?"":TICON[t]+" ")+nm;
+    out.push(line);
+    if(o.addr&&s.address)out.push("　📍 "+s.address);
+    if(o.notes&&s.notes)out.push("　"+s.notes);
+  });
+  return out.join("\n");
+}
+function textOpts(){ return {addr:$("#oAddr").checked,notes:$("#oNotes").checked,bold:$("#oBold").checked,emoji:$("#oEmoji").value}; }
+function renderText(){
+  var el=$("#textOut");
+  if(!loaded||!stops.length){ el.innerHTML=emptyState(); return; }
+  var o=textOpts(), by={};
+  sorted().forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
+  var days=[]; if(dayFilter)days=[dayFilter]; else for(var d=1;d<=maxDay();d++)days.push(d);
+  var blocks=[]; days.forEach(function(d){ var t=dayText(by[d]||[],d,o); if(t)blocks.push({d:d,t:t}); });
+  if(!blocks.length){ el.innerHTML='<div class="msg"><strong>这一天还没有安排。</strong></div>'; return; }
+  el.innerHTML='<pre id="textAll" hidden>'+esc(blocks.map(function(b){return b.t;}).join("\n\n"))+'</pre>'+
+    blocks.map(function(b){ return '<div class="tday" style="--dc:'+dc(b.d)+'"><div class="tday-h"><strong>第'+b.d+'天</strong><button class="btn sm" data-copyel="tx'+b.d+'">复制这一天</button></div><pre id="tx'+b.d+'" class="tx">'+esc(b.t)+'</pre></div>'; }).join("");
+}
+function copyText(txt){
+  var done=function(){ toast("已复制，可以粘贴到 WhatsApp 了"); };
+  var fb=function(){ var a=document.createElement("textarea"); a.value=txt; a.style.position="fixed"; a.style.opacity="0"; document.body.appendChild(a); a.select(); var ok=false; try{ ok=document.execCommand("copy"); }catch(x){} a.remove(); if(ok)done(); else toast("复制没有成功，请长按文字手动复制"); };
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done).catch(fb); else fb();
+}
+function loadTextOpts(){ try{ var o=JSON.parse(localStorage.getItem("textOpts")||"null"); if(o){ $("#oAddr").checked=!!o.addr; $("#oNotes").checked=!!o.notes; $("#oBold").checked=!!o.bold; if(o.emoji!=null)$("#oEmoji").value=o.emoji; } }catch(e){} }
+["#oAddr","#oNotes","#oBold","#oEmoji"].forEach(function(s){ $(s).addEventListener("input",function(){ try{ localStorage.setItem("textOpts",JSON.stringify(textOpts())); }catch(e){} if(view==="text")renderText(); }); });
+document.addEventListener("click",function(e){ var t=e.target.closest("[data-copyel]"); if(!t)return; var el=document.getElementById(t.dataset.copyel); if(el)copyText(el.textContent); else toast("没有可以复制的内容"); });
+loadTextOpts();
 
 /* ---------- events ---------- */
 document.addEventListener("click",function(e){
