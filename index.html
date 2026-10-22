@@ -132,32 +132,117 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 .hint{margin:0 0 10px;font-size:13px;color:var(--muted)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
 
-.toast{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;max-width:calc(100% - 32px);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:9px;padding:9px 16px;font-size:14px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:20}
-.toast.on{opacity:1;transform:none}
+/* table view */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.panel h2{margin:0 0 6px;font-size:16px}
+.steps{margin:0 0 8px;padding-left:20px;font-size:14px}
+.hint{margin:0 0 10px;font-size:13px;color:var(--muted)}
+#paste{width:100%;min-height:96px;resize:vertical;border:1px solid var(--line);border-radius:7px;background:var(--bg);padding:8px 10px;font-family:var(--font-mono);font-size:12px}
+.file-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.status{margin:6px 0 10px;font-size:14px;min-height:22px}
+.confirm{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.gridwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.gh,.gr{display:grid;grid-template-columns:56px 84px 88px minmax(150px,1.2fr) 92px minmax(170px,1.6fr) minmax(150px,1.4fr) 84px 84px 52px;gap:6px;padding:6px 10px;min-width:1060px;align-items:center}
+.gh{font-size:12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line)}
+.gr+.gr{border-top:1px solid var(--line)}
+.gc{min-width:0}
+.gc label{display:none;font-size:11px;color:var(--muted)}
+.gc input{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:5px 6px;font-size:14px}
+.gc input:hover:not(:disabled){border-color:var(--line)}
+.gc input:focus{outline:none;border-color:var(--accent);background:var(--bg)}
+.gc input:disabled{opacity:1;color:var(--ink)}
+.gc.c-time input,.gc.c-day input,.gc.c-lat input,.gc.c-lng input{font-family:var(--font-mono);font-size:13px}
+.gr .dayc{border-left:3px solid var(--dc);padding-left:6px}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px}
+.del:hover:not(:disabled){color:var(--d5);text-decoration:underline}
+@media (max-width:720px){
+  .gridwrap{overflow:visible;background:none;border:0}
+  .gh{display:none}
+  .gr{min-width:0;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:10px}
+  .gr+.gr{border-top:1px solid var(--line)}
+  .gc label{display:block}
+  .gc.c-name,.gc.c-address,.gc.c-notes{grid-column:1/-1}
+  .gc input{border-color:var(--line)}
+  .gc.c-del{grid-column:1/-1;text-align:right}
+}
+
+
+.gc select{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:5px 2px;font-size:14px}
+.gc select:hover{border-color:var(--line)}
+.gc select:focus{outline:none;border-color:var(--accent);background:var(--bg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{border:0;background:none;padding:0;color:var(--accent);cursor:pointer;text-decoration:underline;font-size:inherit}
+.msg .btnrow{margin-top:12px}
+.banner{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.banner button{margin-left:auto}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.top-main{flex:1 1 320px;min-width:0}
+.title-input{width:100%;border:0;border-bottom:2px solid transparent;background:transparent;font-size:28px;font-weight:700;line-height:1.25;padding:2px 0;text-wrap:balance}
+.title-input:hover{border-bottom-color:var(--line)}
+.title-input:focus{outline:none;border-bottom-color:var(--accent)}
+.start{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.start input{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 8px;font-family:var(--font-mono);font-size:13px}
+
+.toast{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;max-width:calc(100% - 32px);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:9px;padding:9px 16px;font-size:14px;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:20}
+.toast.on{opacity:1;pointer-events:auto;transform:none}
+.toast .tbtn{border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1 id="title">中国行程表</h1>
-    <p id="stats" class="stats">正在载入行程…</p>
+    <div class="top-main">
+      <input id="tripTitle" class="title-input" type="text" placeholder="我们的中国行" aria-label="行程名称" maxlength="60">
+      <p id="stats" class="stats">正在载入行程…</p>
+    </div>
+    <label class="start">出发日期 <input type="date" id="tripStart"></label>
   </header>
-  <div class="bar">
-    <label class="btn sm" for="file">载入我的表格</label>
-    <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
-    <a class="btn sm" href="itinerary.xlsx" download>下载表格</a>
-    <span id="src" class="src"></span>
-  </div>
   <div id="banner"></div>
   <div class="tabs" role="tablist" aria-label="视图">
     <button role="tab" data-view="plan" aria-selected="true">时间表</button>
     <button role="tab" data-view="map" aria-selected="false">地图</button>
+    <button role="tab" data-view="table" aria-selected="false">编辑</button>
     <button role="tab" data-view="text" aria-selected="false">分享文字</button>
   </div>
   <div id="daynav" class="daynav" aria-label="按天筛选"></div>
   <section id="v-plan"></section>
   <section id="v-map" hidden></section>
+  <section id="v-table" hidden>
+    <p class="hint">在这里直接添加和修改行程，改动会自动保存在这台设备上。要让家人看到最新版，先导出 Excel，再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
+    <div class="toolbar">
+      <button id="addBtn" class="btn primary">＋ 添加一行</button>
+      <button id="xlsBtn" class="btn">导出 Excel</button>
+      <button id="csvBtn" class="btn">导出 CSV</button>
+      <button id="impBtn" class="btn">导入表格</button>
+      <button id="clrBtn" class="btn">清空全部</button>
+    </div>
+    <div id="imp" class="panel" hidden>
+      <h2>从 Google 表格或 Excel 导入</h2>
+      <ol class="steps">
+        <li>在 Google 表格或 Excel 里选中整张表（包含表头），复制。</li>
+        <li>粘贴到下面的框里。也可以选择下载好的 .xlsx 或 .csv 文件（Google 表格：文件 → 下载）。</li>
+        <li>点“替换全部”或“追加”。</li>
+      </ol>
+      <p class="hint">表头用这些名字：天数、时间、类别、地点、城市、地址、备注、纬度、经度。类别可选：景点、早餐、午餐、晚餐、住宿、交通、其他、当天标题，可以留空（按景点处理）。纬度和经度可以留空，留空时地图会按城市估算位置。天数留空的行沿用上一行的天数。</p>
+      <textarea id="paste" placeholder="把复制的表格粘贴到这里" aria-label="粘贴表格内容"></textarea>
+      <div class="file-row">
+        <label class="btn" for="file">选择 .xlsx / .csv 文件</label>
+        <input type="file" id="file" accept=".xlsx,.xls,.csv,.tsv" hidden>
+        <span id="fileName" class="hint"></span>
+      </div>
+      <p id="impStatus" class="status" role="status"></p>
+      <div class="toolbar">
+        <button id="impAppend" class="btn" disabled>追加到现有行程</button>
+        <button id="impReplace" class="btn primary" disabled>替换全部</button>
+        <button id="impClose" class="btn">收起</button>
+      </div>
+      <div id="confirm" class="confirm" hidden></div>
+    </div>
+    <div id="gridwrap" class="gridwrap"><div id="rows"></div></div>
+  </section>
   <section id="v-text" hidden>
     <div class="panel topts">
       <label><input type="checkbox" id="oAddr" checked> 显示地址</label>
@@ -242,7 +327,7 @@ function rowsFromAOA(aoa){
     var g=function(f){ return map[f]===undefined?"":String(r[map[f]]==null?"":r[map[f]]).trim(); };
     var name=g("name"); if(!name)return;
     var dm=g("day").match(/\d+/); var day=dm?parseInt(dm[0],10):last; if(day<1)day=1; last=day;
-    out.push({id:"s"+out.length,ord:out.length,day:day,time:g("time"),type:normType(g("type")),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
+    out.push({id:uid(),ord:Date.now()+out.length,day:day,time:g("time"),type:normType(g("type")),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
   });
   return out;
 }
@@ -256,62 +341,159 @@ function metaFromAOA(aoa){
   });
   return m;
 }
-function ingestXlsx(buf,label){
+var STORE_KEY="china-trip-v2", source="site", canSave=true, focusAfter=null, dirtyTable=false, staged=null, busy=false;
+var COLH=[["day","天数"],["time","时间"],["type","类别"],["name","地点"],["city","城市"],["address","地址"],["notes","备注"],["lat","纬度"],["lng","经度"]];
+function uid(){ return "r"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function persist(){
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify({meta:meta,stops:stops})); source="local"; }
+  catch(e){ if(canSave){ canSave=false; toast("这个浏览器不能保存修改，请改完后及时导出 Excel"); } }
+}
+function loadLocal(){ try{ var o=JSON.parse(localStorage.getItem(STORE_KEY)||"null"); if(o&&Array.isArray(o.stops)){ meta=o.meta||{}; stops=o.stops; return true; } }catch(e){} return false; }
+function ingestXlsx(buf){
   var wb=XLSX.read(buf,{type:"array"});
-  var first=wb.Sheets[wb.SheetNames[0]];
-  var rows=rowsFromAOA(XLSX.utils.sheet_to_json(first,{header:1,raw:false,defval:""}));
+  var rows=rowsFromAOA(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:""}));
   var setName=wb.SheetNames.filter(function(n){ return /设置|setting/i.test(n); })[0];
-  meta=setName?metaFromAOA(XLSX.utils.sheet_to_json(wb.Sheets[setName],{header:1,raw:false,defval:""})):{};
-  setData(rows,label);
+  return {rows:rows, meta:setName?metaFromAOA(XLSX.utils.sheet_to_json(wb.Sheets[setName],{header:1,raw:false,defval:""})):{}};
 }
-function setData(rows,label){
-  stops=rows; loaded=true; failed=null; selId=null; dayFilter=null;
-  $("#src").textContent=label?("当前显示："+label):"";
-  renderAll();
-}
-async function loadDefault(){
+async function loadSite(){
   try{
     if(!window.XLSX)throw new Error("lib");
     var r=await fetch("itinerary.xlsx?t="+Date.now(),{cache:"no-store"});
     if(!r.ok)throw new Error("http "+r.status);
-    ingestXlsx(await r.arrayBuffer(),"itinerary.xlsx");
-  }catch(e){
-    loaded=true; stops=[];
-    failed=location.protocol==="file:"?"file":"fetch";
-    renderAll();
-  }
+    var d=ingestXlsx(await r.arrayBuffer()); stops=d.rows; meta=d.meta; failed=null;
+  }catch(e){ stops=[]; meta={}; failed=location.protocol==="file:"?"file":"fetch"; }
+  source="site"; loaded=true; selId=null; renderAll();
 }
-$("#file").addEventListener("change",async function(){
-  var f=this.files&&this.files[0]; if(!f)return;
-  try{
-    if(/\.csv$/i.test(f.name)){
-      var txt=new TextDecoder("utf-8").decode(await f.arrayBuffer()).replace(/^﻿/,"");
-      meta={}; setData(rowsFromAOA(parseDelim(txt,txt.indexOf("\t")>=0?"\t":",")),f.name);
-    } else {
-      if(!window.XLSX)throw new Error("lib");
-      ingestXlsx(await f.arrayBuffer(),f.name);
-    }
-    toast("已载入 "+f.name);
-  }catch(e){ toast("没能读取这个文件，请确认是 .xlsx 或 .csv"); }
-  this.value="";
+function resetLocal(){ try{ localStorage.removeItem(STORE_KEY); }catch(e){} loadSite(); toast("已恢复为网站上的版本"); }
+async function init(){ if(loadLocal()){ loaded=true; source="local"; renderAll(); return; } await loadSite(); }
+function twoStep(btn,label,fn){
+  if(btn.dataset.armed){ clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent=btn.dataset.label; fn(); return; }
+  btn.dataset.label=btn.textContent; btn.dataset.armed="1"; btn.textContent=label;
+  btn._t=setTimeout(function(){ delete btn.dataset.armed; btn.textContent=btn.dataset.label; },4000);
+}
+function download(name,blob){ var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+
+/* ---------- edit view ---------- */
+function cell(f,label,html){ return '<div class="gc c-'+f+(f==="day"?" dayc":"")+'"><label>'+label+'</label>'+html+'</div>'; }
+function typeSel(s){
+  var cur=s.type||"景点";
+  return cell("type","类别",'<select data-f="type" aria-label="类别">'+TYPES.map(function(t){ return '<option value="'+t+'"'+(t===cur?" selected":"")+'>'+(t==="标题"?"当天标题":t)+'</option>'; }).join("")+'</select>');
+}
+function renderTable(){
+  var el=$("#rows"), list=sorted();
+  if(!list.length){ el.innerHTML='<p class="msg" style="margin:10px">表格是空的。点“添加一行”，或用“导入表格”从 Google 表格、Excel 导入。</p>'; return; }
+  var head='<div class="gh">'+COLH.map(function(c){return '<div>'+c[1]+'</div>';}).join("")+'<div></div></div>';
+  var rows=list.map(function(s){
+    var inp=function(f,label,type,extra){ return cell(f,label,'<input type="'+type+'" data-f="'+f+'" aria-label="'+label+'" value="'+esc(s[f]==null?"":s[f])+'"'+(extra||"")+'>'); };
+    return '<div class="gr" data-id="'+esc(s.id)+'" style="--dc:'+dc(dayOf(s))+'">'+
+      inp("day","天数","number",' min="1" max="99" inputmode="numeric"')+inp("time","时间","text",' placeholder="09:00"')+typeSel(s)+inp("name","地点","text")+inp("city","城市","text")+inp("address","地址","text")+inp("notes","备注","text")+
+      inp("lat","纬度","text",' inputmode="decimal" placeholder="可留空"')+inp("lng","经度","text",' inputmode="decimal" placeholder="可留空"')+
+      '<div class="gc c-del"><button class="del" data-del="'+esc(s.id)+'" aria-label="删除这一行">删除</button></div></div>';
+  }).join("");
+  el.innerHTML=head+rows;
+  if(focusAfter){ var f=el.querySelector('[data-id="'+focusAfter+'"] [data-f="name"]'); if(f){ f.focus(); f.scrollIntoView({block:"center"}); focusAfter=null; } }
+}
+function tableHasFocus(){ var a=document.activeElement; return !!(a&&a.closest&&a.closest("#rows")&&(a.tagName==="INPUT"||a.tagName==="SELECT")); }
+function addRow(day){
+  var d=day||dayFilter||(stops.length?Math.max.apply(null,stops.map(dayOf)):1);
+  var r={id:uid(),day:d,time:"",type:"景点",name:"",city:"",address:"",notes:"",lat:null,lng:null,ord:Date.now()};
+  stops.push(r); persist(); focusAfter=r.id; view="table"; renderAll();
+}
+function deleteRow(id){
+  var i=stops.findIndex(function(x){return x.id===id;}); if(i<0)return;
+  var gone=stops.splice(i,1)[0]; persist(); renderAll();
+  var again=function(){ stops.push(gone); persist(); renderAll(); };
+  var t=$("#toast"); t.innerHTML="<span>已删除一行</span><button class=\"tbtn\">撤销</button>"; t.classList.add("on");
+  t.querySelector("button").onclick=function(){ t.classList.remove("on"); again(); };
+  clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove("on"); },9000);
+}
+function saveField(id,f,raw){
+  var s=stops.find(function(x){return x.id===id;}); if(!s)return;
+  var v=raw.trim();
+  if(f==="day"){ var n=parseInt(v,10); if(!(n>=1)){ renderTable(); return; } v=n; }
+  if(f==="lat"||f==="lng"){ if(v===""){ v=null; } else { var x=Number(v); if(!isFinite(x)||Math.abs(x)>(f==="lat"?90:180)){ toast("纬度、经度请填数字，例如 39.9163"); renderTable(); return; } v=x; } }
+  s[f]=v; persist(); renderAll();
+}
+
+/* ---------- import / export ---------- */
+function setStaged(rows,label){
+  staged=rows&&rows.length?rows:null;
+  $("#impStatus").textContent=staged?(label+"识别到 "+staged.length+" 个地点。"):(label+"没有识别到地点，请确认复制了包含“地点”一列的整张表。");
+  $("#impAppend").disabled=$("#impReplace").disabled=!staged;
+}
+function doImport(mode){
+  if(!staged)return;
+  var n=staged.length;
+  stops=mode==="replace"?staged.slice():stops.concat(staged);
+  staged=null; persist(); $("#paste").value=""; $("#fileName").textContent=""; $("#file").value=""; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#imp").hidden=true;
+  renderAll(); toast("已导入 "+n+" 个地点");
+}
+function pad2(n){ return ("0"+n).slice(-2); }
+function rowsAOA(){ return [["天数","日期","时间","类别","地点","城市","地址","备注","纬度","经度"]].concat(sorted().map(function(s){ var d=dayOf(s), t=dateOf(d); return [d,t?t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate()):"",s.time||"",s.type||"景点",s.name||"",s.city||"",s.address||"",s.notes||"",s.lat==null?"":s.lat,s.lng==null?"":s.lng]; })); }
+function exportCSV(){
+  var q=function(v){ v=String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  download("itinerary.csv",new Blob(["﻿"+rowsAOA().map(function(r){return r.map(q).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  toast("已导出 itinerary.csv");
+}
+function exportXLSX(){
+  if(!window.XLSX){ toast("Excel 导出组件没有加载，请改用 CSV"); return; }
+  var ws=XLSX.utils.aoa_to_sheet(rowsAOA()); ws["!cols"]=[6,12,10,10,26,10,36,32,10,10].map(function(w){return {wch:w};});
+  var st=XLSX.utils.aoa_to_sheet([["行程名称",meta.title||""],["出发日期",meta.start||""]]); st["!cols"]=[{wch:12},{wch:28}];
+  var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"行程"); XLSX.utils.book_append_sheet(wb,st,"设置");
+  download("itinerary.xlsx",new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  toast("已导出 itinerary.xlsx，上传到 GitHub 覆盖旧文件即可更新网站");
+}
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-add],[data-del],[data-act]"); if(!t)return;
+  if(t.dataset.add!==undefined){ addRow(parseInt(t.dataset.add,10)||null); return; }
+  if(t.dataset.del){ deleteRow(t.dataset.del); return; }
+  if(t.dataset.act==="open-import"){ view="table"; renderAll(); $("#imp").hidden=false; return; }
+  if(t.dataset.act==="reset-site"){ twoStep(t,"确定？本机修改会丢失",resetLocal); return; }
 });
+$("#rows").addEventListener("change",function(e){ var f=e.target.dataset&&e.target.dataset.f; if(!f)return; saveField(e.target.closest(".gr").dataset.id,f,e.target.value); });
+$("#rows").addEventListener("focusout",function(){ setTimeout(function(){ if(dirtyTable&&!tableHasFocus()){ dirtyTable=false; renderTable(); } },0); });
+$("#tripTitle").addEventListener("change",function(){ meta.title=this.value.trim(); persist(); renderAll(); });
+$("#tripStart").addEventListener("change",function(){ meta.start=this.value; persist(); renderAll(); });
+$("#addBtn").addEventListener("click",function(){ addRow(null); });
+$("#impBtn").addEventListener("click",function(){ $("#imp").hidden=!$("#imp").hidden; });
+$("#impClose").addEventListener("click",function(){ $("#imp").hidden=true; });
+$("#csvBtn").addEventListener("click",exportCSV);
+$("#xlsBtn").addEventListener("click",exportXLSX);
+$("#clrBtn").addEventListener("click",function(){ twoStep(this,"确定清空？再点一次",function(){ var all=stops; stops=[]; persist(); renderAll(); var t=$("#toast"); t.innerHTML="<span>已清空全部行程</span><button class=\"tbtn\">撤销</button>"; t.classList.add("on"); t.querySelector("button").onclick=function(){ t.classList.remove("on"); stops=all; persist(); renderAll(); }; clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove("on"); },9000); }); });
+$("#paste").addEventListener("input",function(){
+  var t=this.value; if(!t.trim()){ staged=null; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; return; }
+  $("#fileName").textContent=""; $("#file").value="";
+  setStaged(rowsFromAOA(parseDelim(t,t.indexOf("\t")>=0?"\t":",")),"");
+});
+$("#file").addEventListener("change",async function(){
+  var f=this.files&&this.files[0]; if(!f)return; $("#fileName").textContent=f.name; $("#paste").value="";
+  try{
+    var rows;
+    if(/\.csv$/i.test(f.name)){ var txt=new TextDecoder("utf-8").decode(await f.arrayBuffer()).replace(/^﻿/,""); rows=rowsFromAOA(parseDelim(txt,txt.indexOf("\t")>=0?"\t":",")); }
+    else { if(!window.XLSX)throw new Error("lib"); rows=ingestXlsx(await f.arrayBuffer()).rows; }
+    setStaged(rows,f.name+"：");
+  }catch(err){ staged=null; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#impStatus").textContent="没能读取这个文件。可以改为复制表格内容，粘贴到上面的框里。"; }
+});
+$("#impAppend").addEventListener("click",function(){ doImport("append"); });
+$("#impReplace").addEventListener("click",function(){ if(!stops.length){ doImport("replace"); return; } twoStep(this,"确定替换？再点一次",function(){ doImport("replace"); }); });
 
 /* ---------- render ---------- */
 function renderChrome(){
-  $("#title").textContent=meta.title||"中国行程表";
+  var ti=$("#tripTitle"), sd=$("#tripStart"); if(document.activeElement!==ti)ti.value=meta.title||""; if(document.activeElement!==sd)sd.value=meta.start||"";
   document.title=meta.title||"中国行程表";
   var cities={}; stops.forEach(function(s){ if(s.city)cities[s.city]=1; });
   var used={}; stops.forEach(function(s){ used[dayOf(s)]=1; });
   var range="";
   if(dateOf(1)){ var a=dateOf(1), b=dateOf(maxDay()); range=(a.getMonth()+1)+"月"+a.getDate()+"日 – "+(b.getMonth()+1)+"月"+b.getDate()+"日 · "; }
-  $("#stats").textContent=!loaded?"正在载入行程…":failed?"没能载入行程":
+  $("#stats").textContent=!loaded?"正在载入行程…":
     range+"共 "+maxDay()+" 天 · "+stops.length+" 个地点 · "+Object.keys(cities).length+" 座城市";
   var b="";
-  if(failed==="file")b='<div class="banner">直接双击打开时，浏览器不允许读取同一文件夹里的表格。请点上面的“载入我的表格”，选择 itinerary.xlsx。</div>';
-  else if(failed==="fetch")b='<div class="banner">没能读取 itinerary.xlsx。请确认它和 index.html 在同一个位置，或点上面的“载入我的表格”手动选择。</div>';
+  if(source==="local")b+='<div class="banner"><span>现在显示的是保存在这台设备上的修改，网站上的版本没有变。要让家人看到，请在“编辑”页导出 Excel，再上传到 GitHub。</span><button class="btn sm" data-act="reset-site">恢复为网站版本</button></div>';
+  else if(failed==="file")b+='<div class="banner"><span>直接双击打开时，浏览器不能读取同一文件夹里的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”选择这个文件。</span></div>';
+  else if(failed==="fetch")b+='<div class="banner"><span>没能读取网站上的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”手动选择文件。</span></div>';
   $("#banner").innerHTML=b;
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(x){ x.setAttribute("aria-selected",x.dataset.view===view?"true":"false"); });
-  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-text").hidden=view!=="text";
+  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-table").hidden=view!=="table"; $("#v-text").hidden=view!=="text"; $("#daynav").hidden=view==="table";
 }
 function renderNav(){
   var by={}; sorted().forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
@@ -325,8 +507,7 @@ function renderNav(){
 function links(s){ return '<a href="'+esc(gUrl(s))+'" target="_blank" rel="noopener">Google</a><a href="'+esc(aUrl(s))+'" target="_blank" rel="noopener">高德</a>'; }
 function emptyState(){
   if(!loaded)return '<div class="msg">正在载入行程…</div>';
-  if(failed)return '<div class="msg"><strong>还没有载入行程。</strong><br>点上面的“载入我的表格”选择 itinerary.xlsx。</div>';
-  return '<div class="msg"><strong>表格里还没有行程。</strong><br>在 itinerary.xlsx 里填好“地点”这一列，再重新打开。</div>';
+  return '<div class="msg"><strong>还没有行程。</strong><br>可以一条一条添加，也可以把 Google 表格或 Excel 里的行程一次导入。<div class="btnrow"><button class="btn primary" data-add="1">添加第一个地点</button><button class="btn" data-act="open-import">导入表格</button></div></div>';
 }
 function renderPlan(){
   var el=$("#v-plan");
@@ -340,7 +521,7 @@ function renderPlan(){
     var body=l.length?'<ol class="stops">'+l.map(function(s){
       return '<li class="stop"><div class="t'+(s.time?"":" none")+'">'+esc(s.time||"—")+'</div><div><div class="n">'+typeIcon(s)+esc(s.name)+(s.city?'<span class="tag">'+esc(s.city)+'</span>':'')+'</div>'+
         (s.address?'<p class="addr">'+esc(s.address)+'</p>':'')+(s.notes?'<p class="note">'+esc(s.notes)+'</p>':'')+'</div><div class="go">'+links(s)+'</div></li>';
-    }).join("")+'</ol>':'<p class="empty-day">这一天还没有安排。</p>';
+    }).join("")+'</ol>':'<p class="empty-day">这一天还没有安排。 <button class="link" data-add="'+d+'">添加地点</button></p>';
     return '<section class="day" style="--dc:'+dc(d)+'">'+head+body+'</section>';
   }).join("");
 }
@@ -403,7 +584,7 @@ function renderMap(){
   var miss=list.length-m.placed;
   el.innerHTML='<div class="mapgrid"><div class="mapcol">'+(m.svg?'<figure class="mapbox">'+m.svg+'</figure><p class="legend">示意图，没有底图。数字是当天的游览顺序，虚线圈是按城市估算的位置。'+(miss?' 有 '+miss+' 个地点缺少城市和经纬度，没有画出来。':'')+'</p>':'<div class="msg"><strong>地图上还没有点。</strong><br>在表格里给地点填上城市，或填上纬度和经度。</div>')+'</div><div class="listcol">'+route+'<ol class="mlist">'+items+'</ol></div></div>';
 }
-function renderAll(){ renderChrome(); renderNav(); if(view==="plan")renderPlan(); else if(view==="text")renderText(); else renderMap(); }
+function renderAll(){ renderChrome(); renderNav(); if(view==="plan")renderPlan(); else if(view==="text")renderText(); else if(view==="table"){ if(!tableHasFocus())renderTable(); else dirtyTable=true; } else renderMap(); }
 
 
 /* ---------- share text (for WhatsApp) ---------- */
@@ -465,7 +646,7 @@ document.addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){ if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("pin")){ e.preventDefault(); selId=e.target.dataset.id; renderAll(); } });
 
 renderAll();
-loadDefault();
+init();
 })();
 </script>
 </body>
