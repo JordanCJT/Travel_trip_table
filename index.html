@@ -185,6 +185,11 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 .start{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .start input{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 8px;font-family:var(--font-mono);font-size:13px}
 
+.tripbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:12px}
+.tripbar label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-width:0;max-width:100%}
+.tripbar select{min-width:0;max-width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:7px;padding:6px 8px;font-size:14px;font-weight:500}
+.dates{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.start input[type=number]{width:5.5em}
 .toast{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;max-width:calc(100% - 32px);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:9px;padding:9px 16px;font-size:14px;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:20}
 .toast.on{opacity:1;pointer-events:auto;transform:none}
 .toast .tbtn{border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0}
@@ -193,12 +198,20 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 </head>
 <body>
 <div class="wrap">
+  <div class="tripbar">
+    <label>旅行 <select id="tripSel" aria-label="选择旅行"></select></label>
+    <button class="btn sm" data-act="trip-new">＋ 新建旅行</button>
+    <button class="btn sm" data-act="trip-del">删除这个旅行</button>
+  </div>
   <header class="top">
     <div class="top-main">
-      <input id="tripTitle" class="title-input" type="text" placeholder="我们的中国行" aria-label="行程名称" maxlength="60">
+      <input id="tripTitle" class="title-input" type="text" placeholder="给这次旅行起个名字" aria-label="旅行名称" maxlength="60">
       <p id="stats" class="stats">正在载入行程…</p>
     </div>
-    <label class="start">出发日期 <input type="date" id="tripStart"></label>
+    <div class="dates">
+      <label class="start">出发日期 <input type="date" id="tripStart"></label>
+      <label class="start">天数 <input type="number" id="tripDays" min="1" max="90" inputmode="numeric" placeholder="自动"></label>
+    </div>
   </header>
   <div id="banner"></div>
   <div class="tabs" role="tablist" aria-label="视图">
@@ -211,13 +224,13 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
   <section id="v-plan"></section>
   <section id="v-map" hidden></section>
   <section id="v-table" hidden>
-    <p class="hint">在这里直接添加和修改行程，改动会自动保存在这台设备上。要让家人看到最新版，先导出 Excel，再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
+    <p class="hint">这里编辑的是上面选中的那次旅行。改动会自动保存在这台设备上。要让家人看到最新版，先导出 Excel（包含全部旅行），再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
     <div class="toolbar">
       <button id="addBtn" class="btn primary">＋ 添加一行</button>
-      <button id="xlsBtn" class="btn">导出 Excel</button>
-      <button id="csvBtn" class="btn">导出 CSV</button>
+      <button id="xlsBtn" class="btn">导出 Excel（全部旅行）</button>
+      <button id="csvBtn" class="btn">导出 CSV（当前旅行）</button>
       <button id="impBtn" class="btn">导入表格</button>
-      <button id="clrBtn" class="btn">清空全部</button>
+      <button id="clrBtn" class="btn">清空这次旅行的行程</button>
     </div>
     <div id="imp" class="panel" hidden>
       <h2>从 Google 表格或 Excel 导入</h2>
@@ -226,7 +239,7 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
         <li>粘贴到下面的框里。也可以选择下载好的 .xlsx 或 .csv 文件（Google 表格：文件 → 下载）。</li>
         <li>点“替换全部”或“追加”。</li>
       </ol>
-      <p class="hint">表头用这些名字：天数、时间、类别、地点、城市、地址、备注、纬度、经度。类别可选：景点、早餐、午餐、晚餐、住宿、交通、其他、当天标题，可以留空（按景点处理）。纬度和经度可以留空，留空时地图会按城市估算位置。天数留空的行沿用上一行的天数。</p>
+      <p class="hint">表头用这些名字：旅行、天数、时间、类别、地点、城市、地址、备注、纬度、经度。“旅行”这一列可选，填了就会按名字分成不同的旅行。类别可选：景点、早餐、午餐、晚餐、住宿、交通、其他、当天标题，可以留空（按景点处理）。纬度和经度可以留空，留空时地图会按城市估算位置。天数留空的行沿用上一行的天数。</p>
       <textarea id="paste" placeholder="把复制的表格粘贴到这里" aria-label="粘贴表格内容"></textarea>
       <div class="file-row">
         <label class="btn" for="file">选择 .xlsx / .csv 文件</label>
@@ -266,27 +279,34 @@ var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){r
 var COLS=["day","time","type","name","city","address","notes","lat","lng"];
 var TYPES=["景点","早餐","午餐","晚餐","住宿","交通","其他","标题"];
 var TICON={"景点":"📍","早餐":"🍳","午餐":"🍜","晚餐":"🍽️","住宿":"🏠","交通":"🚄","其他":"▪️"};
-var TDEF={"标题":"00:00","早餐":"07:00","午餐":"12:00","晚餐":"18:00","住宿":"23:50"};
+var TDEF={"标题":"00:00","早餐":"07:00","午餐":"12:00","晚餐":"18:00","住宿":"99:99"};
 function normType(v){ v=String(v||"").trim(); if(v==="当天标题")v="标题"; return TYPES.indexOf(v)>=0?v:""; }
 function isTitle(s){ return s.type==="标题"; }
 function notTitle(s){ return s.type!=="标题"; }
+function isPlace(s){ return !s.type||s.type==="景点"; }
 function typeIcon(s){ return s.type&&s.type!=="景点"&&TICON[s.type]?TICON[s.type]+" ":""; }
 
-var HEAD={day:["天数","天","第几天","day","日程"],time:["时间","time","时刻","开始时间"],type:["类别","类型","category","type"],name:["地点","地点名称","名称","地方","景点","name","place"],city:["城市","city"],address:["地址","address","位置"],notes:["备注","notes","note","说明"],lat:["纬度","lat","latitude"],lng:["经度","lng","lon","long","longitude"]};
+var HEAD={day:["天数","天","第几天","day","日程"],time:["时间","time","时刻","开始时间"],type:["类别","类型","category","type"],trip:["旅行","旅行名称","trip"],name:["地点","地点名称","名称","地方","景点","name","place"],city:["城市","city"],address:["地址","address","位置"],notes:["备注","notes","note","说明"],lat:["纬度","lat","latitude"],lng:["经度","lng","lon","long","longitude"]};
 
 /* major Chinese cities: zh, lowercase pinyin/english, lng, lat (only used to estimate a pin when a row has no coordinates) */
-var CITIES=[["北京","beijing",116.41,39.90],["上海","shanghai",121.47,31.23],["广州","guangzhou",113.26,23.13],["深圳","shenzhen",114.06,22.54],["成都","chengdu",104.07,30.57],["重庆","chongqing",106.55,29.56],["西安","xi'an",108.94,34.34],["西安","xian",108.94,34.34],["杭州","hangzhou",120.15,30.27],["南京","nanjing",118.80,32.06],["苏州","suzhou",120.62,31.30],["无锡","wuxi",120.31,31.49],["武汉","wuhan",114.31,30.59],["长沙","changsha",112.94,28.23],["桂林","guilin",110.29,25.27],["阳朔","yangshuo",110.49,24.78],["昆明","kunming",102.83,25.04],["丽江","lijiang",100.23,26.87],["大理","dali",100.27,25.61],["张家界","zhangjiajie",110.48,29.12],["哈尔滨","harbin",126.64,45.76],["青岛","qingdao",120.38,36.07],["厦门","xiamen",118.09,24.48],["贵阳","guiyang",106.63,26.65],["拉萨","lhasa",91.17,29.65],["乌鲁木齐","urumqi",87.62,43.83],["三亚","sanya",109.51,18.25],["海口","haikou",110.35,20.02],["郑州","zhengzhou",113.62,34.75],["洛阳","luoyang",112.45,34.62],["天津","tianjin",117.20,39.08],["沈阳","shenyang",123.43,41.80],["大连","dalian",121.62,38.91],["济南","jinan",117.00,36.65],["合肥","hefei",117.23,31.82],["福州","fuzhou",119.30,26.07],["南昌","nanchang",115.86,28.68],["黄山","huangshan",118.34,29.71],["兰州","lanzhou",103.83,36.06],["西宁","xining",101.78,36.62],["敦煌","dunhuang",94.66,40.14],["银川","yinchuan",106.23,38.49],["太原","taiyuan",112.55,37.87],["大同","datong",113.30,40.08],["平遥","pingyao",112.18,37.20],["香港","hong kong",114.17,22.32],["澳门","macau",113.54,22.20],["南宁","nanning",108.37,22.82],["珠海","zhuhai",113.58,22.27],["乐山","leshan",103.77,29.55],["九寨沟","jiuzhaigou",103.92,33.26]];
+var CITIES=[["北京","beijing",116.41,39.90],["上海","shanghai",121.47,31.23],["广州","guangzhou",113.26,23.13],["深圳","shenzhen",114.06,22.54],["成都","chengdu",104.07,30.57],["重庆","chongqing",106.55,29.56],["西安","xi'an",108.94,34.34],["西安","xian",108.94,34.34],["杭州","hangzhou",120.15,30.27],["南京","nanjing",118.80,32.06],["苏州","suzhou",120.62,31.30],["无锡","wuxi",120.31,31.49],["武汉","wuhan",114.31,30.59],["长沙","changsha",112.94,28.23],["桂林","guilin",110.29,25.27],["阳朔","yangshuo",110.49,24.78],["昆明","kunming",102.83,25.04],["丽江","lijiang",100.23,26.87],["大理","dali",100.27,25.61],["张家界","zhangjiajie",110.48,29.12],["哈尔滨","harbin",126.64,45.76],["青岛","qingdao",120.38,36.07],["厦门","xiamen",118.09,24.48],["贵阳","guiyang",106.63,26.65],["拉萨","lhasa",91.17,29.65],["乌鲁木齐","urumqi",87.62,43.83],["三亚","sanya",109.51,18.25],["海口","haikou",110.35,20.02],["郑州","zhengzhou",113.62,34.75],["洛阳","luoyang",112.45,34.62],["天津","tianjin",117.20,39.08],["沈阳","shenyang",123.43,41.80],["大连","dalian",121.62,38.91],["济南","jinan",117.00,36.65],["合肥","hefei",117.23,31.82],["福州","fuzhou",119.30,26.07],["南昌","nanchang",115.86,28.68],["黄山","huangshan",118.34,29.71],["兰州","lanzhou",103.83,36.06],["西宁","xining",101.78,36.62],["敦煌","dunhuang",94.66,40.14],["银川","yinchuan",106.23,38.49],["太原","taiyuan",112.55,37.87],["大同","datong",113.30,40.08],["平遥","pingyao",112.18,37.20],["香港","hong kong",114.17,22.32],["澳门","macau",113.54,22.20],["南宁","nanning",108.37,22.82],["珠海","zhuhai",113.58,22.27],["乐山","leshan",103.77,29.55],["九寨沟","jiuzhaigou",103.92,33.26],["亚布力","yabuli",128.45,44.78],["雪乡","xuexiang",128.2,44.33]];
 
-var stops=[], meta={}, loaded=false, failed=null;
+var stops=[], meta={}, loaded=false, failed=null, trips=[], curId=null;
 var view="plan", dayFilter=null, selId=null;
 
 /* ---------- helpers ---------- */
 function num(v){ if(v===null||v===undefined||v==="")return null; var n=Number(v); return isFinite(n)?n:null; }
 function dayOf(s){ var d=parseInt(s.day,10); return d>=1?d:1; }
-function timeKey(t,type){ var m=/(\d{1,2})\s*[:：点时]\s*(\d{1,2})?/.exec(String(t||"")); if(!m)return TDEF[type]||"99:99"; return ("0"+m[1]).slice(-2)+":"+("0"+(m[2]||"0")).slice(-2); }
+var PERIOD=[["凌晨","05:00"],["早上","08:00"],["上午","09:00"],["全天","09:00"],["中午","12:00"],["午后","14:00"],["下午","14:00"],["傍晚","17:30"],["晚上","19:30"],["夜晚","19:30"],["夜间","19:30"]];
+function timeKey(t,type){
+  var str=String(t||""), m=/(\d{1,2})\s*[:：点时]\s*(\d{1,2})?/.exec(str);
+  if(m){ var h=parseInt(m[1],10); if(h<12&&/下午|傍晚|晚上|夜/.test(str))h+=12; return ("0"+h).slice(-2)+":"+("0"+(m[2]||"0")).slice(-2); }
+  for(var i=0;i<PERIOD.length;i++){ if(str.indexOf(PERIOD[i][0])>=0)return PERIOD[i][1]; }
+  return TDEF[type]||"99:99";
+}
 function sorted(){ return stops.slice().sort(function(a,b){ var ka=timeKey(a.time,a.type),kb=timeKey(b.time,b.type); return dayOf(a)-dayOf(b) || (ka<kb?-1:ka>kb?1:0) || a.ord-b.ord; }); }
 function dc(d){ return "var(--d"+((d-1)%7)+")"; }
-function maxDay(){ var m=14; stops.forEach(function(s){ m=Math.max(m,dayOf(s)); }); return m; }
+function maxDay(){ var m=Math.max(1,parseInt(meta.days,10)||0); stops.forEach(function(s){ m=Math.max(m,dayOf(s)); }); return m; }
 function dateOf(d){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(meta.start||""); if(!m)return null; return new Date(+m[1],+m[2]-1,+m[3]+d-1); }
 function dateLabel(d){ var t=dateOf(d); return t? (t.getMonth()+1)+"月"+t.getDate()+"日 周"+"日一二三四五六".charAt(t.getDay()) : ""; }
 function shortDate(d){ var t=dateOf(d); return t? (t.getMonth()+1)+"/"+t.getDate() : ""; }
@@ -327,7 +347,7 @@ function rowsFromAOA(aoa){
     var g=function(f){ return map[f]===undefined?"":String(r[map[f]]==null?"":r[map[f]]).trim(); };
     var name=g("name"); if(!name)return;
     var dm=g("day").match(/\d+/); var day=dm?parseInt(dm[0],10):last; if(day<1)day=1; last=day;
-    out.push({id:uid(),ord:Date.now()+out.length,day:day,time:g("time"),type:normType(g("type")),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
+    out.push({id:uid(),trip:g("trip"),ord:Date.now()+out.length,day:day,time:g("time"),type:normType(g("type")),name:name,city:g("city"),address:g("address"),notes:g("notes"),lat:num(g("lat")),lng:num(g("lng"))});
   });
   return out;
 }
@@ -341,30 +361,107 @@ function metaFromAOA(aoa){
   });
   return m;
 }
-var STORE_KEY="china-trip-v2", source="site", canSave=true, focusAfter=null, dirtyTable=false, staged=null, busy=false;
+var STORE_KEY="china-trip-v3", OLD_KEY="china-trip-v2", source="site", canSave=true, focusAfter=null, dirtyTable=false, staged=null, busy=false;
 var COLH=[["day","天数"],["time","时间"],["type","类别"],["name","地点"],["city","城市"],["address","地址"],["notes","备注"],["lat","纬度"],["lng","经度"]];
 function uid(){ return "r"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ---------- trips ---------- */
+function newTrip(title,start,days){ return {id:uid(),title:title||"",start:start||"",days:days||0,stops:[]}; }
+function curTrip(){ return trips.filter(function(t){return t.id===curId;})[0]; }
+function tripDays(t){ var m=Math.max(1,parseInt(t.days,10)||0); (t.stops||[]).forEach(function(x){ m=Math.max(m,dayOf(x)); }); return m; }
+function endOf(t){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t.start||""); if(!m)return ""; var d=new Date(+m[1],+m[2]-1,+m[3]+tripDays(t)-1); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function rangeLabel(t){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t.start||""); if(!m)return ""; var a=new Date(+m[1],+m[2]-1,+m[3]), b=new Date(+m[1],+m[2]-1,+m[3]+tripDays(t)-1); return (a.getMonth()+1)+"/"+a.getDate()+"–"+(b.getMonth()+1)+"/"+b.getDate(); }
+function useTrip(id){
+  var t=trips.filter(function(x){return x.id===id;})[0]||trips[0];
+  curId=t.id; stops=t.stops; meta={title:t.title,start:t.start,days:t.days};
+  stops.forEach(function(x,i){ if(!x.id)x.id=uid(); if(x.ord==null)x.ord=i; });
+  selId=null; dayFilter=null;
+}
+function syncOut(){ var t=curTrip(); if(!t)return; t.stops=stops; t.title=meta.title||""; t.start=meta.start||""; t.days=meta.days||0; }
+function pickDefault(){
+  var d=new Date(), today=d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+  var dated=trips.filter(function(t){return t.start;}).sort(function(a,b){ return a.start<b.start?-1:a.start>b.start?1:0; });
+  var pick=dated.filter(function(t){ return endOf(t)>=today; })[0]||dated[dated.length-1]||trips[0];
+  return pick.id;
+}
+function setTrips(list){ trips=list.length?list:[newTrip("我的旅行","",0)]; useTrip(pickDefault()); }
+function withTrip(t,fn){ var s0=stops, m0=meta; stops=t.stops; meta={title:t.title,start:t.start,days:t.days}; try{ return fn(); }finally{ stops=s0; meta=m0; } }
+function toastAct(msg,label,fn){
+  var t=$("#toast"); t.innerHTML="<span>"+esc(msg)+"</span><button class=\"tbtn\">"+esc(label)+"</button>"; t.classList.add("on");
+  t.querySelector("button").onclick=function(){ t.classList.remove("on"); fn(); };
+  clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove("on"); },9000);
+}
+function newTripUI(){
+  persist(); var t=newTrip("新的旅行","",5); trips.push(t); useTrip(t.id); persist(); view="plan"; renderAll();
+  var ti=$("#tripTitle"); ti.focus(); ti.select();
+}
+function delTrip(){
+  var t=curTrip(); if(!t)return; syncOut();
+  var i=trips.indexOf(t); trips.splice(i,1);
+  var placeholder=null; if(!trips.length){ placeholder=newTrip("我的旅行","",0); trips.push(placeholder); }
+  useTrip((trips[i]||trips[i-1]||trips[0]).id); persist(); renderAll();
+  toastAct("已删除“"+(t.title||"未命名旅行")+"”","撤销",function(){
+    syncOut(); if(placeholder)trips=trips.filter(function(x){return x!==placeholder;});
+    trips.splice(Math.min(i,trips.length),0,t); useTrip(t.id); persist(); renderAll();
+  });
+}
+
+/* ---------- storage ---------- */
 function persist(){
-  try{ localStorage.setItem(STORE_KEY,JSON.stringify({meta:meta,stops:stops})); source="local"; }
+  syncOut();
+  try{ localStorage.setItem(STORE_KEY,JSON.stringify({trips:trips,cur:curId})); source="local"; }
   catch(e){ if(canSave){ canSave=false; toast("这个浏览器不能保存修改，请改完后及时导出 Excel"); } }
 }
-function loadLocal(){ try{ var o=JSON.parse(localStorage.getItem(STORE_KEY)||"null"); if(o&&Array.isArray(o.stops)){ meta=o.meta||{}; stops=o.stops; return true; } }catch(e){} return false; }
-function ingestXlsx(buf){
+function loadLocal(){
+  try{
+    var o=JSON.parse(localStorage.getItem(STORE_KEY)||"null");
+    if(o&&Array.isArray(o.trips)&&o.trips.length){
+      o.trips.forEach(function(t){ if(!Array.isArray(t.stops))t.stops=[]; if(!t.id)t.id=uid(); });
+      trips=o.trips; useTrip(o.cur); return true;
+    }
+    var old=JSON.parse(localStorage.getItem(OLD_KEY)||"null");
+    if(old&&Array.isArray(old.stops)){
+      var t=newTrip((old.meta&&old.meta.title)||"我的旅行",(old.meta&&old.meta.start)||"",0); t.stops=old.stops; trips=[t]; useTrip(t.id); return true;
+    }
+  }catch(e){}
+  return false;
+}
+function normDate(v){
+  var x=String(v==null?"":v).trim(); if(!x)return "";
+  var m=/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/.exec(x); if(m)return m[1]+"-"+pad2(+m[2])+"-"+pad2(+m[3]);
+  m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(x); if(m){ var y=+m[3]; if(y<100)y+=2000; return y+"-"+pad2(+m[1])+"-"+pad2(+m[2]); }
+  return "";
+}
+function buildTrips(rows,aoa){
+  var defs=[], legacy={}, h=aoa.length?String(aoa[0][0]||"").trim():"";
+  if(/^(旅行名称|旅行|trip)$/i.test(h)){
+    aoa.slice(1).forEach(function(r){ var n=String(r[0]||"").trim(); if(!n)return; defs.push({title:n,start:normDate(r[1]),days:parseInt(String(r[2]==null?"":r[2]).replace(/\D/g,""),10)||0}); });
+  } else legacy=metaFromAOA(aoa);
+  var by={}, order=[];
+  rows.forEach(function(r){ var k=r.trip||""; delete r.trip; if(!by[k]){ by[k]=[]; order.push(k); } by[k].push(r); });
+  var list=[], used={};
+  defs.forEach(function(d){ var t=newTrip(d.title,d.start,d.days); t.stops=by[d.title]||[]; used[d.title]=1; list.push(t); });
+  order.forEach(function(k){ if(used[k])return; var t=newTrip(k||legacy.title||"我的旅行",k?"":(legacy.start||""),0); t.stops=by[k]; list.push(t); });
+  return {trips:list, multi:defs.length>0||order.some(function(k){return !!k;}), legacy:legacy};
+}
+function readWorkbook(buf){
   var wb=XLSX.read(buf,{type:"array"});
   var rows=rowsFromAOA(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:""}));
   var setName=wb.SheetNames.filter(function(n){ return /设置|setting/i.test(n); })[0];
-  return {rows:rows, meta:setName?metaFromAOA(XLSX.utils.sheet_to_json(wb.Sheets[setName],{header:1,raw:false,defval:""})):{}};
+  var aoa=setName?XLSX.utils.sheet_to_json(wb.Sheets[setName],{header:1,raw:false,defval:""}):[];
+  return buildTrips(rows,aoa);
 }
 async function loadSite(){
+  var list=[];
   try{
     if(!window.XLSX)throw new Error("lib");
     var r=await fetch("itinerary.xlsx?t="+Date.now(),{cache:"no-store"});
     if(!r.ok)throw new Error("http "+r.status);
-    var d=ingestXlsx(await r.arrayBuffer()); stops=d.rows; meta=d.meta; failed=null;
-  }catch(e){ stops=[]; meta={}; failed=location.protocol==="file:"?"file":"fetch"; }
-  source="site"; loaded=true; selId=null; renderAll();
+    list=readWorkbook(await r.arrayBuffer()).trips; failed=null;
+  }catch(e){ list=[]; failed=location.protocol==="file:"?"file":"fetch"; }
+  setTrips(list); source="site"; loaded=true; renderAll();
 }
-function resetLocal(){ try{ localStorage.removeItem(STORE_KEY); }catch(e){} loadSite(); toast("已恢复为网站上的版本"); }
+function resetLocal(){ try{ localStorage.removeItem(STORE_KEY); localStorage.removeItem(OLD_KEY); }catch(e){} loadSite(); toast("已恢复为网站上的版本"); }
 async function init(){ if(loadLocal()){ loaded=true; source="local"; renderAll(); return; } await loadSite(); }
 function twoStep(btn,label,fn){
   if(btn.dataset.armed){ clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent=btn.dataset.label; fn(); return; }
@@ -412,36 +509,68 @@ function saveField(id,f,raw){
   var v=raw.trim();
   if(f==="day"){ var n=parseInt(v,10); if(!(n>=1)){ renderTable(); return; } v=n; }
   if(f==="lat"||f==="lng"){ if(v===""){ v=null; } else { var x=Number(v); if(!isFinite(x)||Math.abs(x)>(f==="lat"?90:180)){ toast("纬度、经度请填数字，例如 39.9163"); renderTable(); return; } v=x; } }
-  s[f]=v; persist(); renderAll();
+  s[f]=v; persist(); renderChrome(); renderNav(); dirtyTable=true;
 }
 
 /* ---------- import / export ---------- */
-function setStaged(rows,label){
-  staged=rows&&rows.length?rows:null;
-  $("#impStatus").textContent=staged?(label+"识别到 "+staged.length+" 个地点。"):(label+"没有识别到地点，请确认复制了包含“地点”一列的整张表。");
+function pad2(n){ return ("0"+n).slice(-2); }
+function stage(res,label){
+  var rows=[]; res.trips.forEach(function(t){ rows=rows.concat(t.stops); });
+  var ok=res.trips.length&&(rows.length||res.multi);
+  staged=ok?{trips:res.trips,multi:res.multi,rows:rows,meta:res.legacy||{}}:null;
+  $("#impStatus").textContent=!ok?(label+"没有识别到地点，请确认复制了包含“地点”一列的整张表。"):res.multi?(label+"识别到 "+res.trips.length+" 个旅行，共 "+rows.length+" 个地点。"):(label+"识别到 "+rows.length+" 个地点。");
+  $("#impAppend").textContent=res.multi?"追加为新旅行":"追加到当前旅行";
+  $("#impReplace").textContent=res.multi?"替换全部旅行":"替换当前旅行的行程";
   $("#impAppend").disabled=$("#impReplace").disabled=!staged;
+}
+function finishImport(msg){
+  staged=null; persist(); $("#paste").value=""; $("#fileName").textContent=""; $("#file").value=""; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#imp").hidden=true;
+  renderAll(); toast(msg);
 }
 function doImport(mode){
   if(!staged)return;
-  var n=staged.length;
-  stops=mode==="replace"?staged.slice():stops.concat(staged);
-  staged=null; persist(); $("#paste").value=""; $("#fileName").textContent=""; $("#file").value=""; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#imp").hidden=true;
-  renderAll(); toast("已导入 "+n+" 个地点");
+  var st=staged;
+  if(st.multi){
+    syncOut(); if(mode==="replace")trips=[];
+    st.trips.forEach(function(t){ t.stops.forEach(function(r){ r.id=uid(); }); trips.push(t); });
+    useTrip(st.trips[0].id);
+    finishImport("已导入 "+st.trips.length+" 个旅行");
+  } else {
+    var base=Date.now(); st.rows.forEach(function(r,i){ r.id=uid(); r.ord=base+i; });
+    if(mode==="replace"){ stops=st.rows; if(st.meta.title)meta.title=st.meta.title; if(st.meta.start)meta.start=st.meta.start; }
+    else stops=stops.concat(st.rows);
+    finishImport("已导入 "+st.rows.length+" 个地点");
+  }
 }
-function pad2(n){ return ("0"+n).slice(-2); }
-function rowsAOA(){ return [["天数","日期","时间","类别","地点","城市","地址","备注","纬度","经度"]].concat(sorted().map(function(s){ var d=dayOf(s), t=dateOf(d); return [d,t?t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate()):"",s.time||"",s.type||"景点",s.name||"",s.city||"",s.address||"",s.notes||"",s.lat==null?"":s.lat,s.lng==null?"":s.lng]; })); }
+function bookRows(onlyCur){
+  syncOut();
+  var rows=[["旅行","天数","日期","时间","类别","地点","城市","地址","备注","纬度","经度"]], defs=[["旅行名称","出发日期","天数"]], names={};
+  trips.filter(function(t){ return !onlyCur||t.id===curId; }).forEach(function(t){
+    var nm=(t.title||"").trim()||"未命名旅行", base=nm, k=2; while(names[nm]){ nm=base+" "+k; k++; } names[nm]=1;
+    defs.push([nm,t.start||"",tripDays(t)]);
+    withTrip(t,function(){
+      sorted().forEach(function(x){
+        if(!x.name)return;
+        var d=dayOf(x), dt=dateOf(d);
+        rows.push([nm,d,dt?dt.getFullYear()+"-"+pad2(dt.getMonth()+1)+"-"+pad2(dt.getDate()):"",x.time||"",x.type||"景点",x.name,x.city||"",x.address||"",x.notes||"",x.lat==null?"":x.lat,x.lng==null?"":x.lng]);
+      });
+    });
+  });
+  return {rows:rows,defs:defs};
+}
 function exportCSV(){
   var q=function(v){ v=String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
-  download("itinerary.csv",new Blob(["﻿"+rowsAOA().map(function(r){return r.map(q).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"}));
-  toast("已导出 itinerary.csv");
+  download("itinerary.csv",new Blob(["\ufeff"+bookRows(true).rows.map(function(r){return r.map(q).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  toast("已导出当前旅行的 itinerary.csv");
 }
 function exportXLSX(){
   if(!window.XLSX){ toast("Excel 导出组件没有加载，请改用 CSV"); return; }
-  var ws=XLSX.utils.aoa_to_sheet(rowsAOA()); ws["!cols"]=[6,12,10,10,26,10,36,32,10,10].map(function(w){return {wch:w};});
-  var st=XLSX.utils.aoa_to_sheet([["行程名称",meta.title||""],["出发日期",meta.start||""]]); st["!cols"]=[{wch:12},{wch:28}];
+  var b=bookRows(false);
+  var ws=XLSX.utils.aoa_to_sheet(b.rows); ws["!cols"]=[24,6,12,10,10,28,10,36,40,10,10].map(function(w){return {wch:w};});
+  var st=XLSX.utils.aoa_to_sheet(b.defs); st["!cols"]=[{wch:36},{wch:14},{wch:8}];
   var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"行程"); XLSX.utils.book_append_sheet(wb,st,"设置");
   download("itinerary.xlsx",new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
-  toast("已导出 itinerary.xlsx，上传到 GitHub 覆盖旧文件即可更新网站");
+  toast("已导出 itinerary.xlsx（包含全部旅行），上传到 GitHub 覆盖旧文件即可更新网站");
 }
 document.addEventListener("click",function(e){
   var t=e.target.closest("[data-add],[data-del],[data-act]"); if(!t)return;
@@ -449,6 +578,8 @@ document.addEventListener("click",function(e){
   if(t.dataset.del){ deleteRow(t.dataset.del); return; }
   if(t.dataset.act==="open-import"){ view="table"; renderAll(); $("#imp").hidden=false; return; }
   if(t.dataset.act==="reset-site"){ twoStep(t,"确定？本机修改会丢失",resetLocal); return; }
+  if(t.dataset.act==="trip-new"){ newTripUI(); return; }
+  if(t.dataset.act==="trip-del"){ twoStep(t,"确定删除？再点一次",delTrip); return; }
 });
 $("#rows").addEventListener("change",function(e){ var f=e.target.dataset&&e.target.dataset.f; if(!f)return; saveField(e.target.closest(".gr").dataset.id,f,e.target.value); });
 $("#rows").addEventListener("focusout",function(){ setTimeout(function(){ if(dirtyTable&&!tableHasFocus()){ dirtyTable=false; renderTable(); } },0); });
@@ -463,35 +594,47 @@ $("#clrBtn").addEventListener("click",function(){ twoStep(this,"确定清空？�
 $("#paste").addEventListener("input",function(){
   var t=this.value; if(!t.trim()){ staged=null; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; return; }
   $("#fileName").textContent=""; $("#file").value="";
-  setStaged(rowsFromAOA(parseDelim(t,t.indexOf("\t")>=0?"\t":",")),"");
+  stage(buildTrips(rowsFromAOA(parseDelim(t,t.indexOf("\t")>=0?"\t":",")),[]),"");
 });
 $("#file").addEventListener("change",async function(){
   var f=this.files&&this.files[0]; if(!f)return; $("#fileName").textContent=f.name; $("#paste").value="";
   try{
-    var rows;
-    if(/\.csv$/i.test(f.name)){ var txt=new TextDecoder("utf-8").decode(await f.arrayBuffer()).replace(/^﻿/,""); rows=rowsFromAOA(parseDelim(txt,txt.indexOf("\t")>=0?"\t":",")); }
-    else { if(!window.XLSX)throw new Error("lib"); rows=ingestXlsx(await f.arrayBuffer()).rows; }
-    setStaged(rows,f.name+"：");
+    var res;
+    if(/\.csv$/i.test(f.name)){ var txt=new TextDecoder("utf-8").decode(await f.arrayBuffer()).replace(/^\ufeff/,""); res=buildTrips(rowsFromAOA(parseDelim(txt,txt.indexOf("\t")>=0?"\t":",")),[]); }
+    else { if(!window.XLSX)throw new Error("lib"); res=readWorkbook(await f.arrayBuffer()); }
+    stage(res,f.name+"：");
   }catch(err){ staged=null; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#impStatus").textContent="没能读取这个文件。可以改为复制表格内容，粘贴到上面的框里。"; }
 });
 $("#impAppend").addEventListener("click",function(){ doImport("append"); });
-$("#impReplace").addEventListener("click",function(){ if(!stops.length){ doImport("replace"); return; } twoStep(this,"确定替换？再点一次",function(){ doImport("replace"); }); });
+$("#impReplace").addEventListener("click",function(){ if(!stops.length&&!trips.length){ doImport("replace"); return; } twoStep(this,"确定替换？再点一次",function(){ doImport("replace"); }); });
+$("#tripSel").addEventListener("change",function(){ persist(); useTrip(this.value); persist(); renderAll(); });
+$("#tripDays").addEventListener("change",function(){
+  var n=parseInt(this.value,10), used=0; stops.forEach(function(s){ used=Math.max(used,dayOf(s)); });
+  n=n>=1?Math.min(n,90):0;
+  if(n&&n<used){ toast("第 "+used+" 天已经有行程，天数最少是 "+used+"。要减少天数，请先删除或修改后面几天的行程。"); n=used; }
+  meta.days=n; persist(); renderAll();
+});
 
 /* ---------- render ---------- */
 function renderChrome(){
-  var ti=$("#tripTitle"), sd=$("#tripStart"); if(document.activeElement!==ti)ti.value=meta.title||""; if(document.activeElement!==sd)sd.value=meta.start||"";
-  document.title=meta.title||"中国行程表";
+  syncOut();
+  var ti=$("#tripTitle"), sd=$("#tripStart"), dd=$("#tripDays"), sel=$("#tripSel");
+  if(document.activeElement!==ti)ti.value=meta.title||"";
+  if(document.activeElement!==sd)sd.value=meta.start||"";
+  if(document.activeElement!==dd)dd.value=meta.days?meta.days:"";
+  if(document.activeElement!==sel){ sel.innerHTML=trips.map(function(t){ var r=rangeLabel(t); return '<option value="'+esc(t.id)+'">'+esc(t.title||"未命名旅行")+(r?"（"+r+"）":"")+'</option>'; }).join(""); }
+  sel.value=curId;
+  document.title=meta.title||"行程表";
   var cities={}; stops.forEach(function(s){ if(s.city)cities[s.city]=1; });
-  var used={}; stops.forEach(function(s){ used[dayOf(s)]=1; });
   var range="";
   if(dateOf(1)){ var a=dateOf(1), b=dateOf(maxDay()); range=(a.getMonth()+1)+"月"+a.getDate()+"日 – "+(b.getMonth()+1)+"月"+b.getDate()+"日 · "; }
   $("#stats").textContent=!loaded?"正在载入行程…":
-    range+"共 "+maxDay()+" 天 · "+stops.length+" 个地点 · "+Object.keys(cities).length+" 座城市";
-  var b="";
-  if(source==="local")b+='<div class="banner"><span>现在显示的是保存在这台设备上的修改，网站上的版本没有变。要让家人看到，请在“编辑”页导出 Excel，再上传到 GitHub。</span><button class="btn sm" data-act="reset-site">恢复为网站版本</button></div>';
-  else if(failed==="file")b+='<div class="banner"><span>直接双击打开时，浏览器不能读取同一文件夹里的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”选择这个文件。</span></div>';
-  else if(failed==="fetch")b+='<div class="banner"><span>没能读取网站上的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”手动选择文件。</span></div>';
-  $("#banner").innerHTML=b;
+    range+"共 "+maxDay()+" 天 · "+stops.filter(isPlace).length+" 个景点 · "+Object.keys(cities).length+" 个目的地";
+  var bn="";
+  if(source==="local")bn+='<div class="banner"><span>现在显示的是保存在这台设备上的修改，网站上的版本没有变。要让家人看到，请在“编辑”页导出 Excel，再上传到 GitHub。</span><button class="btn sm" data-act="reset-site">恢复为网站版本</button></div>';
+  else if(failed==="file")bn+='<div class="banner"><span>直接双击打开时，浏览器不能读取同一文件夹里的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”选择这个文件。</span></div>';
+  else if(failed==="fetch")bn+='<div class="banner"><span>没能读取网站上的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”手动选择文件。</span></div>';
+  $("#banner").innerHTML=bn;
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(x){ x.setAttribute("aria-selected",x.dataset.view===view?"true":"false"); });
   $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-table").hidden=view!=="table"; $("#v-text").hidden=view!=="text"; $("#daynav").hidden=view==="table";
 }
@@ -511,13 +654,13 @@ function emptyState(){
 }
 function renderPlan(){
   var el=$("#v-plan");
-  if(!loaded||!stops.length){ el.innerHTML=emptyState(); return; }
+  if(!loaded||(!stops.length&&!meta.days)){ el.innerHTML=emptyState(); return; }
   var list=sorted(), by={};
   list.forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
   var days=[]; if(dayFilter)days=[dayFilter]; else for(var d=1;d<=maxDay();d++)days.push(d);
   el.innerHTML=days.map(function(d){
     var all=by[d]||[]; var tr=all.filter(isTitle)[0]; var l=all.filter(notTitle); var cs=[]; l.forEach(function(s){ if(s.city&&cs.indexOf(s.city)<0)cs.push(s.city); });
-    var head='<div class="day-h"><div class="day-n"><small>第</small>'+d+'<small>天</small></div><div class="day-meta"><div class="day-date">'+esc(dateLabel(d)||"第"+d+"天")+'</div><div class="day-city">'+esc((tr?tr.name:cs.join(" → "))||"　")+'</div></div><div class="day-count">'+(l.length?l.length+" 站":"")+'</div></div>';
+    var head='<div class="day-h"><div class="day-n"><small>第</small>'+d+'<small>天</small></div><div class="day-meta"><div class="day-date">'+esc(dateLabel(d)||"第"+d+"天")+'</div><div class="day-city">'+esc((tr?tr.name:cs.join(" → "))||"　")+'</div></div><div class="day-count">'+(l.filter(isPlace).length?l.filter(isPlace).length+" 个景点":"")+'</div></div>';
     var body=l.length?'<ol class="stops">'+l.map(function(s){
       return '<li class="stop"><div class="t'+(s.time?"":" none")+'">'+esc(s.time||"—")+'</div><div><div class="n">'+typeIcon(s)+esc(s.name)+(s.city?'<span class="tag">'+esc(s.city)+'</span>':'')+'</div>'+
         (s.address?'<p class="addr">'+esc(s.address)+'</p>':'')+(s.notes?'<p class="note">'+esc(s.notes)+'</p>':'')+'</div><div class="go">'+links(s)+'</div></li>';
@@ -547,7 +690,7 @@ function buildMap(list){
   var byDay={}; raw.forEach(function(r){ var d=dayOf(r.s); (byDay[d]=byDay[d]||[]).push(r); });
   var routes=Object.keys(byDay).map(function(d){ var a=byDay[d]; if(a.length<2)return ""; return '<polyline class="route" style="stroke:'+dc(+d)+'" points="'+a.map(function(r){return r.x.toFixed(1)+","+r.y.toFixed(1);}).join(" ")+'"/>'; }).join("");
   var order={}; raw.forEach(function(r){ var d=dayOf(r.s); order[d]=(order[d]||0)+1; r.n=order[d]; });
-  var showAll=raw.length<=10;
+  var showAll=raw.length<=10&&!Object.keys(groups).some(function(k){ return groups[k].length>=3; });
   var pins=raw.slice().sort(function(a,b){ return (a.s.id===selId)-(b.s.id===selId); }).map(function(r){
     var d=dayOf(r.s), sel=r.s.id===selId, left=r.x>W*0.62, nm=String(r.s.name||"");
     var label=(showAll||sel)?'<text class="pl" x="'+(left?-19:19)+'" y="4.5" text-anchor="'+(left?"end":"start")+'">'+esc(nm.length>12?nm.slice(0,12)+"…":nm)+'</text>':"";
@@ -573,8 +716,8 @@ function detailHTML(s){
 function renderMap(){
   var el=$("#v-map");
   if(!loaded||!stops.length){ el.innerHTML=emptyState(); return; }
-  var l0=sorted().filter(notTitle), list=dayFilter?l0.filter(function(s){return dayOf(s)===dayFilter;}):l0;
-  if(!list.length){ el.innerHTML='<div class="msg"><strong>这一天还没有地点。</strong></div>'; return; }
+  var l0=sorted().filter(isPlace), list=dayFilter?l0.filter(function(s){return dayOf(s)===dayFilter;}):l0;
+  if(!list.length){ el.innerHTML='<div class="msg"><strong>这一天没有景点可以显示在地图上。</strong></div>'; return; }
   var m=buildMap(list), order={};
   var items=list.map(function(s){
     var d=dayOf(s); order[d]=(order[d]||0)+1; var sel=s.id===selId, placed=!!(exactPos(s)||cityPos(s));
