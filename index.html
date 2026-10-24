@@ -201,6 +201,7 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
   <div class="tripbar">
     <label>旅行 <select id="tripSel" aria-label="选择旅行"></select></label>
     <button class="btn sm" data-act="trip-new">＋ 新建旅行</button>
+    <label class="btn sm" for="file">打开文件</label>
     <button class="btn sm" data-act="trip-del">删除这个旅行</button>
   </div>
   <header class="top">
@@ -227,13 +228,14 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
     <p class="hint">这里编辑的是上面选中的那次旅行。改动会自动保存在这台设备上。要让家人看到最新版，先导出 Excel（包含全部旅行），再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
     <div class="toolbar">
       <button id="addBtn" class="btn primary">＋ 添加一行</button>
-      <button id="xlsBtn" class="btn">导出 Excel（全部旅行）</button>
-      <button id="csvBtn" class="btn">导出 CSV（当前旅行）</button>
+      <button id="xlsBtn" class="btn">导出 Excel · 全部旅行</button>
+      <button id="xlsCurBtn" class="btn">导出 Excel · 这个旅行</button>
+      <button id="csvBtn" class="btn">导出 CSV · 这个旅行</button>
       <button id="impBtn" class="btn">导入表格</button>
       <button id="clrBtn" class="btn">清空这次旅行的行程</button>
     </div>
     <div id="imp" class="panel" hidden>
-      <h2>从 Google 表格或 Excel 导入</h2>
+      <h2>打开文件 / 导入表格</h2>
       <ol class="steps">
         <li>在 Google 表格或 Excel 里选中整张表（包含表头），复制。</li>
         <li>粘贴到下面的框里。也可以选择下载好的 .xlsx 或 .csv 文件（Google 表格：文件 → 下载）。</li>
@@ -560,17 +562,18 @@ function bookRows(onlyCur){
 }
 function exportCSV(){
   var q=function(v){ v=String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
-  download("itinerary.csv",new Blob(["\ufeff"+bookRows(true).rows.map(function(r){return r.map(q).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"}));
-  toast("已导出当前旅行的 itinerary.csv");
+  download(fileBase()+".csv",new Blob(["\ufeff"+bookRows(true).rows.map(function(r){return r.map(q).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  toast("已导出“"+fileBase()+".csv”（只有这个旅行）");
 }
-function exportXLSX(){
+function fileBase(){ var t=curTrip(); return ((t&&t.title)||"旅行").replace(/[\\\/:*?"<>|]/g,"").trim().slice(0,40)||"旅行"; }
+function exportXLSX(onlyCur){
   if(!window.XLSX){ toast("Excel 导出组件没有加载，请改用 CSV"); return; }
-  var b=bookRows(false);
+  var b=bookRows(!!onlyCur);
   var ws=XLSX.utils.aoa_to_sheet(b.rows); ws["!cols"]=[24,6,12,10,10,28,10,36,40,10,10].map(function(w){return {wch:w};});
   var st=XLSX.utils.aoa_to_sheet(b.defs); st["!cols"]=[{wch:36},{wch:14},{wch:8}];
   var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"行程"); XLSX.utils.book_append_sheet(wb,st,"设置");
-  download("itinerary.xlsx",new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
-  toast("已导出 itinerary.xlsx（包含全部旅行），上传到 GitHub 覆盖旧文件即可更新网站");
+  download(onlyCur?fileBase()+".xlsx":"itinerary.xlsx",new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  toast(onlyCur?"已导出“"+fileBase()+".xlsx”（只有这个旅行）":"已导出 itinerary.xlsx（包含全部旅行），上传到 GitHub 覆盖旧文件即可更新网站");
 }
 document.addEventListener("click",function(e){
   var t=e.target.closest("[data-add],[data-del],[data-act]"); if(!t)return;
@@ -589,7 +592,8 @@ $("#addBtn").addEventListener("click",function(){ addRow(null); });
 $("#impBtn").addEventListener("click",function(){ $("#imp").hidden=!$("#imp").hidden; });
 $("#impClose").addEventListener("click",function(){ $("#imp").hidden=true; });
 $("#csvBtn").addEventListener("click",exportCSV);
-$("#xlsBtn").addEventListener("click",exportXLSX);
+$("#xlsBtn").addEventListener("click",function(){ exportXLSX(false); });
+$("#xlsCurBtn").addEventListener("click",function(){ exportXLSX(true); });
 $("#clrBtn").addEventListener("click",function(){ twoStep(this,"确定清空？再点一次",function(){ var all=stops; stops=[]; persist(); renderAll(); var t=$("#toast"); t.innerHTML="<span>已清空全部行程</span><button class=\"tbtn\">撤销</button>"; t.classList.add("on"); t.querySelector("button").onclick=function(){ t.classList.remove("on"); stops=all; persist(); renderAll(); }; clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove("on"); },9000); }); });
 $("#paste").addEventListener("input",function(){
   var t=this.value; if(!t.trim()){ staged=null; $("#impStatus").textContent=""; $("#impAppend").disabled=$("#impReplace").disabled=true; return; }
@@ -598,11 +602,14 @@ $("#paste").addEventListener("input",function(){
 });
 $("#file").addEventListener("change",async function(){
   var f=this.files&&this.files[0]; if(!f)return; $("#fileName").textContent=f.name; $("#paste").value="";
+  view="table"; renderAll(); $("#imp").hidden=false;
   try{
     var res;
     if(/\.csv$/i.test(f.name)){ var txt=new TextDecoder("utf-8").decode(await f.arrayBuffer()).replace(/^\ufeff/,""); res=buildTrips(rowsFromAOA(parseDelim(txt,txt.indexOf("\t")>=0?"\t":",")),[]); }
     else { if(!window.XLSX)throw new Error("lib"); res=readWorkbook(await f.arrayBuffer()); }
     stage(res,f.name+"：");
+    syncOut();
+    if(staged&&trips.every(function(t){ return !(t.stops&&t.stops.length); }))doImport("replace");
   }catch(err){ staged=null; $("#impAppend").disabled=$("#impReplace").disabled=true; $("#impStatus").textContent="没能读取这个文件。可以改为复制表格内容，粘贴到上面的框里。"; }
 });
 $("#impAppend").addEventListener("click",function(){ doImport("append"); });
