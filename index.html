@@ -143,7 +143,7 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 .status{margin:6px 0 10px;font-size:14px;min-height:22px}
 .confirm{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .gridwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
-.gh,.gr{display:grid;grid-template-columns:56px 84px 88px minmax(150px,1.2fr) 92px minmax(170px,1.6fr) minmax(150px,1.4fr) 84px 84px 52px;gap:6px;padding:6px 10px;min-width:1060px;align-items:center}
+.gh,.gr{display:grid;grid-template-columns:112px 84px 88px minmax(150px,1.2fr) 92px minmax(170px,1.6fr) minmax(150px,1.4fr) 84px 84px 52px;gap:6px;padding:6px 10px;min-width:1120px;align-items:center}
 .gh{font-size:12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line)}
 .gr+.gr{border-top:1px solid var(--line)}
 .gc{min-width:0}
@@ -193,6 +193,31 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
 .toast{position:fixed;left:0;right:0;margin-inline:auto;width:fit-content;max-width:calc(100% - 32px);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:9px;padding:9px 16px;font-size:14px;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:20}
 .toast.on{opacity:1;pointer-events:auto;transform:none}
 .toast .tbtn{border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0}
+.tools{margin-bottom:12px}
+.tools summary{display:inline-flex;align-items:center;gap:6px;list-style:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--accent);padding:4px 0}
+.tools summary::-webkit-details-marker{display:none}
+.tools summary::before{content:"▸";font-size:12px}
+.tools[open] summary::before{content:"▾"}
+.tools .toolbar{margin-top:8px}
+.gday{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);min-width:1120px}
+.gd-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--dc)}
+.gridwrap .gday:first-child{border-top:0}
+.gc select{min-width:0}
+.gc.c-del{display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.more{display:none;border:0;background:none;color:var(--accent);cursor:pointer;font-size:13px;padding:4px}
+.addbar{margin-top:12px}
+.add-big{width:100%;justify-content:center;padding:12px 14px;font-size:15px}
+#rows{scroll-margin-top:90px}
+@media (max-width:720px){
+  .gday{min-width:0;margin:10px 0 6px;border:0;background:none;padding:2px 2px}
+  .gridwrap .gday:first-child{margin-top:0}
+  .gc.c-name{order:1}.gc.c-day{order:2}.gc.c-time{order:3}.gc.c-type{order:4}.gc.c-city{order:5}.gc.c-address{order:6}.gc.c-notes{order:7}.gc.c-lat{order:8}.gc.c-lng{order:9}.gc.c-del{order:10}
+  .gr:not(.open) .c-lat,.gr:not(.open) .c-lng{display:none}
+  .more{display:inline-block}
+  .gc select{border-color:var(--line);padding:6px 4px;min-height:36px}
+  .gc input{min-height:36px}
+  .add-big{padding:14px}
+}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
@@ -225,15 +250,20 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
   <section id="v-plan"></section>
   <section id="v-map" hidden></section>
   <section id="v-table" hidden>
-    <p class="hint">这里编辑的是上面选中的那次旅行。改动会自动保存在这台设备上。要让家人看到最新版，先导出 Excel（包含全部旅行），再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
     <div class="toolbar">
-      <button id="addBtn" class="btn primary">＋ 添加一行</button>
-      <button id="xlsBtn" class="btn">导出 Excel · 全部旅行</button>
-      <button id="xlsCurBtn" class="btn">导出 Excel · 这个旅行</button>
-      <button id="csvBtn" class="btn">导出 CSV · 这个旅行</button>
-      <button id="impBtn" class="btn">导入表格</button>
-      <button id="clrBtn" class="btn">清空这次旅行的行程</button>
+      <button id="addBtn" class="btn primary">＋ 加新的一行</button>
     </div>
+    <details class="tools">
+      <summary>导出、导入和清空</summary>
+      <p class="hint">改动会自动保存在这台设备的浏览器里。要让家人看到最新版，先导出 Excel（全部旅行），再上传到 GitHub，覆盖旧的 itinerary.xlsx。</p>
+      <div class="toolbar">
+        <button id="xlsBtn" class="btn">导出 Excel · 全部旅行</button>
+        <button id="xlsCurBtn" class="btn">导出 Excel · 这个旅行</button>
+        <button id="csvBtn" class="btn">导出 CSV · 这个旅行</button>
+        <button id="impBtn" class="btn">导入表格</button>
+        <button id="clrBtn" class="btn">清空这次旅行的行程</button>
+      </div>
+    </details>
     <div id="imp" class="panel" hidden>
       <h2>打开文件 / 导入表格</h2>
       <ol class="steps">
@@ -257,6 +287,7 @@ h1{margin:0;font-size:28px;font-weight:700;line-height:1.25;text-wrap:balance}
       <div id="confirm" class="confirm" hidden></div>
     </div>
     <div id="gridwrap" class="gridwrap"><div id="rows"></div></div>
+    <div class="addbar"><button class="btn primary add-big" data-add="0">＋ 加新的一行</button></div>
   </section>
   <section id="v-text" hidden>
     <div class="panel topts">
@@ -478,20 +509,34 @@ function typeSel(s){
   var cur=s.type||"景点";
   return cell("type","类别",'<select data-f="type" aria-label="类别">'+TYPES.map(function(t){ return '<option value="'+t+'"'+(t===cur?" selected":"")+'>'+(t==="标题"?"当天标题":t)+'</option>'; }).join("")+'</select>');
 }
+var openRows={};
+function daySel(s){
+  var cur=dayOf(s), n=Math.max(maxDay(),cur), o="";
+  for(var d=1;d<=n;d++){ var sd=shortDate(d); o+='<option value="'+d+'"'+(d===cur?" selected":"")+'>第'+d+'天'+(sd?" "+sd:"")+'</option>'; }
+  return cell("day","天数",'<select data-f="day" aria-label="天数">'+o+'</select>');
+}
+function rowHTML(s){
+  var inp=function(f,label,type,extra){ return cell(f,label,'<input type="'+type+'" data-f="'+f+'" aria-label="'+label+'" value="'+esc(s[f]==null?"":s[f])+'"'+(extra||"")+'>'); };
+  return '<div class="gr'+(openRows[s.id]?" open":"")+'" data-id="'+esc(s.id)+'" style="--dc:'+dc(dayOf(s))+'">'+
+    daySel(s)+inp("time","时间","text",' placeholder="09:00"')+typeSel(s)+inp("name","地点","text")+inp("city","城市","text")+inp("address","地址","text")+inp("notes","备注","text")+
+    inp("lat","纬度","text",' inputmode="decimal" placeholder="可留空"')+inp("lng","经度","text",' inputmode="decimal" placeholder="可留空"')+
+    '<div class="gc c-del"><button class="more" data-more="'+esc(s.id)+'">经纬度</button><button class="del" data-del="'+esc(s.id)+'" aria-label="删除这一行">删除</button></div></div>';
+}
 function renderTable(){
-  var el=$("#rows"), list=sorted();
-  if(!list.length){ el.innerHTML='<p class="msg" style="margin:10px">表格是空的。点“添加一行”，或用“导入表格”从 Google 表格、Excel 导入。</p>'; return; }
+  dirtyTable=false;
+  var el=$("#rows");
+  if(!loaded){ el.innerHTML='<p class="msg" style="margin:10px">正在载入行程…</p>'; return; }
+  var by={}; sorted().forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
+  var days=[]; if(dayFilter)days=[dayFilter]; else for(var d=1;d<=maxDay();d++)days.push(d);
   var head='<div class="gh">'+COLH.map(function(c){return '<div>'+c[1]+'</div>';}).join("")+'<div></div></div>';
-  var rows=list.map(function(s){
-    var inp=function(f,label,type,extra){ return cell(f,label,'<input type="'+type+'" data-f="'+f+'" aria-label="'+label+'" value="'+esc(s[f]==null?"":s[f])+'"'+(extra||"")+'>'); };
-    return '<div class="gr" data-id="'+esc(s.id)+'" style="--dc:'+dc(dayOf(s))+'">'+
-      inp("day","天数","number",' min="1" max="99" inputmode="numeric"')+inp("time","时间","text",' placeholder="09:00"')+typeSel(s)+inp("name","地点","text")+inp("city","城市","text")+inp("address","地址","text")+inp("notes","备注","text")+
-      inp("lat","纬度","text",' inputmode="decimal" placeholder="可留空"')+inp("lng","经度","text",' inputmode="decimal" placeholder="可留空"')+
-      '<div class="gc c-del"><button class="del" data-del="'+esc(s.id)+'" aria-label="删除这一行">删除</button></div></div>';
+  var body=days.map(function(d){
+    var l=by[d]||[], tr=l.filter(isTitle)[0], dl=dateLabel(d);
+    return '<div class="gday" style="--dc:'+dc(d)+'"><span class="gd-t">第'+d+'天'+(dl?' · '+esc(dl):'')+(tr&&tr.name?' · '+esc(tr.name):'')+'</span><button class="btn sm" data-add="'+d+'">＋ 加一行</button></div>'+l.map(rowHTML).join("");
   }).join("");
-  el.innerHTML=head+rows;
+  el.innerHTML=head+body;
   if(focusAfter){ var f=el.querySelector('[data-id="'+focusAfter+'"] [data-f="name"]'); if(f){ f.focus(); f.scrollIntoView({block:"center"}); focusAfter=null; } }
 }
+function scrollRowsIntoView(){ var r=$("#rows").getBoundingClientRect(); if(r.top<80)window.scrollTo({top:window.pageYOffset+r.top-90}); }
 function tableHasFocus(){ var a=document.activeElement; return !!(a&&a.closest&&a.closest("#rows")&&(a.tagName==="INPUT"||a.tagName==="SELECT")); }
 function addRow(day){
   var d=day||dayFilter||(stops.length?Math.max.apply(null,stops.map(dayOf)):1);
@@ -576,7 +621,8 @@ function exportXLSX(onlyCur){
   toast(onlyCur?"已导出“"+fileBase()+".xlsx”（只有这个旅行）":"已导出 itinerary.xlsx（包含全部旅行），上传到 GitHub 覆盖旧文件即可更新网站");
 }
 document.addEventListener("click",function(e){
-  var t=e.target.closest("[data-add],[data-del],[data-act]"); if(!t)return;
+  var t=e.target.closest("[data-add],[data-del],[data-act],[data-more]"); if(!t)return;
+  if(t.dataset.more){ var rw=document.querySelector('.gr[data-id="'+t.dataset.more+'"]'); if(rw){ rw.classList.toggle("open"); openRows[t.dataset.more]=rw.classList.contains("open"); } return; }
   if(t.dataset.add!==undefined){ addRow(parseInt(t.dataset.add,10)||null); return; }
   if(t.dataset.del){ deleteRow(t.dataset.del); return; }
   if(t.dataset.act==="open-import"){ view="table"; renderAll(); $("#imp").hidden=false; return; }
@@ -584,7 +630,7 @@ document.addEventListener("click",function(e){
   if(t.dataset.act==="trip-new"){ newTripUI(); return; }
   if(t.dataset.act==="trip-del"){ twoStep(t,"确定删除？再点一次",delTrip); return; }
 });
-$("#rows").addEventListener("change",function(e){ var f=e.target.dataset&&e.target.dataset.f; if(!f)return; saveField(e.target.closest(".gr").dataset.id,f,e.target.value); });
+$("#rows").addEventListener("change",function(e){ var f=e.target.dataset&&e.target.dataset.f; if(!f)return; saveField(e.target.closest(".gr").dataset.id,f,e.target.value); if(f==="day"){ renderTable(); toast("已移到第 "+e.target.value+" 天"); } });
 $("#rows").addEventListener("focusout",function(){ setTimeout(function(){ if(dirtyTable&&!tableHasFocus()){ dirtyTable=false; renderTable(); } },0); });
 $("#tripTitle").addEventListener("change",function(){ meta.title=this.value.trim(); persist(); renderAll(); });
 $("#tripStart").addEventListener("change",function(){ meta.start=this.value; persist(); renderAll(); });
@@ -643,7 +689,7 @@ function renderChrome(){
   else if(failed==="fetch")bn+='<div class="banner"><span>没能读取网站上的 itinerary.xlsx。可以在“编辑”页直接添加行程，或点“导入表格”手动选择文件。</span></div>';
   $("#banner").innerHTML=bn;
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(x){ x.setAttribute("aria-selected",x.dataset.view===view?"true":"false"); });
-  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-table").hidden=view!=="table"; $("#v-text").hidden=view!=="text"; $("#daynav").hidden=view==="table";
+  $("#v-plan").hidden=view!=="plan"; $("#v-map").hidden=view!=="map"; $("#v-table").hidden=view!=="table"; $("#v-text").hidden=view!=="text"; $("#daynav").hidden=false;
 }
 function renderNav(){
   var by={}; sorted().forEach(function(s){ var d=dayOf(s); (by[d]=by[d]||[]).push(s); });
@@ -784,7 +830,7 @@ document.addEventListener("click",function(e){
   var t=e.target.closest("[data-view],[data-day],[data-pick],[data-copy],.pin");
   if(!t)return;
   if(t.dataset.view){ view=t.dataset.view; renderAll(); return; }
-  if(t.dataset.day!==undefined){ var d=parseInt(t.dataset.day,10); dayFilter=d>0?d:null; selId=null; renderAll(); return; }
+  if(t.dataset.day!==undefined){ var d=parseInt(t.dataset.day,10); dayFilter=d>0?d:null; selId=null; renderAll(); if(view==="table")scrollRowsIntoView(); return; }
   if(t.dataset.pick){ selId=selId===t.dataset.pick?null:t.dataset.pick; renderAll(); return; }
   if(t.classList&&t.classList.contains("pin")){ selId=t.dataset.id; renderAll(); var li=document.querySelector('[data-pick="'+selId+'"]'); if(li&&li.scrollIntoView)li.scrollIntoView({block:"nearest"}); return; }
   if(t.dataset.copy!==undefined){
